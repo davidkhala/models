@@ -2,6 +2,10 @@
 a free AI model available through OpenCode Zen.
 - a **stealth model** with a 200K token context window and 128K max output tokens
 - The model is designed for text input, function calling, and complex reasoning tasks.
+- It has built-in
+  - exa: for web search
+  - WebFetch: for web scrape
+  
 
 # [Zen](https://opencode.ai/zen): stealth model gateway
 > Access reliable optimized models for coding agents
