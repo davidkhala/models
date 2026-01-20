@@ -4,5 +4,5 @@
 
 # Qwen VL
 图生文
-
+- [home page](https://github.com/QwenLM/Qwen3-VL)
 - [Technical Report](https://arxiv.org/pdf/2511.21631)
