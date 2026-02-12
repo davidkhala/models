@@ -1,0 +1,27 @@
+[project]
+name = "davidkhala.ai.models"
+version = "0.0.0"
+description = "GenAI models"
+readme = "README.md"
+requires-python = ">=3.12"
+
+[project.optional-dependencies]
+api = ["davidkhala.utils[http_request]"]
+minimax = ["anthropic", "openai"]
+openrouter = ["openrouter"]
+atlas = ["voyageai"]
+
+[tool.hatch.build.targets.sdist]
+include = ["davidkhala"]
+
+[tool.hatch.build.targets.wheel]
+include = ["davidkhala"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest"
+]

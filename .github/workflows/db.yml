@@ -1,0 +1,19 @@
+name: db native AI
+on: push
+jobs:
+  ai:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        platform: [atlas]
+    environment: ${{matrix.platform}}
+    env:
+      API_KEY: ${{secrets.API_KEY}}
+    steps:
+      - uses: actions/checkout@main
+      - uses: davidkhala/uv-buildpack@main
+        with:
+          working-directory: py
+          test-entry-point: pytest ${{matrix.platform}}_test.py
+          tests: py/tests
+          extras: ${{matrix.platform}}
