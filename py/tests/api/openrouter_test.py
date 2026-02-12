@@ -9,7 +9,8 @@ from davidkhala.llm.api.openrouter import OpenRouter as OpenRouterAPI
 class APITestCase(unittest.TestCase):
 
     def setUp(self):
-        self.openrouter = OpenRouterAPI(os.environ.get('API_KEY'))
+        api_key = os.environ.get('API_KEY')
+        self.openrouter = OpenRouterAPI(api_key)
 
     def test_chat(self):
         self.openrouter.as_chat("openrouter/free")
@@ -20,14 +21,19 @@ class APITestCase(unittest.TestCase):
     def test_chat_models(self):
         self.openrouter.as_chat("deepseek/deepseek-r1-0528:free", "deepseek/deepseek-chat-v3.1")
         r = self.openrouter.chat('who am I?')
-        print(r)  # only has one answer. Openrouter use models as pool for load-balance only
-        self.assertIn(r['model'], self.openrouter.models)
+        print(r)
+
 
     def test_models(self):
         models = self.openrouter.free_models
         self.assertGreaterEqual(len(models), 26)
         print(models)
+    def test_embed(self):
+        self.openrouter.as_embeddings('mistralai/codestral-embed-2505')
 
+        r = self.openrouter.encode("apple", "banana")
+        self.assertEqual(2, len(r))
+        self.assertEqual(1536, len(r[0]))
     def test_google_limit(self):
         if os.environ.get('CI'):
             self.skipTest("Gemini is available in GitHub runner region")

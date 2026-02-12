@@ -1,14 +1,16 @@
 from openrouter import OpenRouter
 from openrouter.components import Model
 from openrouter.errors import UnauthorizedResponseError
-from openrouter.operations import ListData
+from openrouter.operations import ListData, CreateEmbeddingsResponseBody
+from typing_extensions import Literal
 
-from davidkhala.llm.model import Connectable, SDKProtocol
-from davidkhala.llm.model.chat import CompareChatAware, on_response
-from davidkhala.llm.model.garden import GardenAlike
+from davidkhala.llm.model import SDKProtocol, Connectable
+from davidkhala.llm.model.chat import on_response
+from davidkhala.llm.model.embed import EmbeddingAware
+from davidkhala.llm.model.openrouter import OpenRouterModel
 
 
-class Client(CompareChatAware, Connectable, SDKProtocol, GardenAlike):
+class Client(OpenRouterModel, EmbeddingAware, SDKProtocol, Connectable):
     def __init__(self, api_key: str):
         super().__init__()
         self.client: OpenRouter = OpenRouter(api_key)
@@ -31,8 +33,18 @@ class Client(CompareChatAware, Connectable, SDKProtocol, GardenAlike):
         except UnauthorizedResponseError:
             return False
 
-    def list_models(self) -> list[Model]:
+    def list_models(self, _type: Literal['embeddings'] | None = None) -> list[Model]:
+        match _type:
+            case 'embeddings':
+                return self.client.embeddings.list_models().data
         return self.client.models.list().data
+
+    def encode(self, *_input: str) -> list[list[float]]:
+        r: CreateEmbeddingsResponseBody = self.client.embeddings.generate(
+            input=_input,
+            model=self.model
+        )
+        return [_.embedding for _ in r.data]
 
 
 class Admin:

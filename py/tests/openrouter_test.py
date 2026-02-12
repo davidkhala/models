@@ -21,11 +21,20 @@ class SDKTestCase(unittest.TestCase):
     def test_models(self):
         r = self.openrouter.models
         print(r)
+        for m in self.openrouter.list_models('embeddings'):
+            print(m.id)
 
     def test_chat(self):
         self.openrouter.as_chat('openrouter/free', sys_prompt='You are a shiny girl today')
         r = self.openrouter.chat('Hello!')
         print(r)
+    @skipIf(os.environ.get('CI'),"paid model")
+    def test_embed(self):
+        self.openrouter.as_embeddings('mistralai/codestral-embed-2505')
+
+        r = self.openrouter.encode("apple", "banana")
+        self.assertEqual(2, len(r))
+        self.assertEqual(1536, len(r[0]))
 
     @skipIf(os.environ.get('CI'), "paid model")
     def test_ibm(self):

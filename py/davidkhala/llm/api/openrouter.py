@@ -5,20 +5,21 @@ from davidkhala.utils.http_request import default_on_response
 from requests import Response
 
 from davidkhala.llm.api import API
-from davidkhala.llm.model.chat import CompareChatAware
+from davidkhala.llm.model.openrouter import OpenRouterModel
 
 
-class OpenRouter(API, CompareChatAware):
+class OpenRouter(API, OpenRouterModel):
 
-    @property
-    def free_models(self) -> list[str]:
-        l = list(
-            map(lambda model: model['id'],
-                filter(lambda model: model['id'].endswith(':free'), self.list_models())
-                )
-        )
-        l.append('openrouter/free')
-        return l
+    def __init__(self, api_key: str, **kwargs):
+        API.__init__(self, api_key, 'https://openrouter.ai/api')
+        OpenRouterModel.__init__(self)
+
+        if 'leaderboard' in kwargs and type(kwargs['leaderboard']) is dict:
+            # Site URL for rankings on openrouter.ai.
+            self.options["headers"]["HTTP-Referer"] = kwargs['leaderboard']['url']
+            # Site title for rankings on openrouter.ai.
+            self.options["headers"]["X-Title"] = kwargs['leaderboard']['name']
+        self.retry = True
 
     @staticmethod
     def on_response(response: requests.Response):
@@ -34,17 +35,6 @@ class OpenRouter(API, CompareChatAware):
             derived_response.raise_for_status()
         return r
 
-    def __init__(self, api_key: str, **kwargs):
-        super().__init__(api_key, 'https://openrouter.ai/api')
-
-        if 'leaderboard' in kwargs and type(kwargs['leaderboard']) is dict:
-            self.options["headers"]["HTTP-Referer"] = kwargs['leaderboard'][
-                'url']  # Site URL for rankings on openrouter.ai.
-            self.options["headers"]["X-Title"] = kwargs['leaderboard'][
-                'name']  # Site title for rankings on openrouter.ai.
-        self.on_response = OpenRouter.on_response
-        self.retry = True
-
     def request(self, url, method: str, params=None, data=None, json=None) -> dict:
         try:
             return super().request(url, method, params, data, json)
@@ -55,9 +45,6 @@ class OpenRouter(API, CompareChatAware):
             else:
                 raise
 
-    def as_chat(self, *models: str, sys_prompt: str = None):
-        CompareChatAware.as_chat(self, *models, sys_prompt=sys_prompt)
-
     def chat(self, *user_prompt: str, **kwargs):
         if self._models:
             kwargs["models"] = self._models
@@ -66,6 +53,12 @@ class OpenRouter(API, CompareChatAware):
 
         r = super().chat(*user_prompt, **kwargs)
 
+        data = r['data']
+        assert len(data) == 1  # only has one answer. Openrouter use models as pool for load-balance only
         if self._models:
             assert r['model'] in self._models
-        return r
+        return data[0]
+
+    @property
+    def models(self) -> list[str]:
+        return [m['id'] for m in self.list_models()]

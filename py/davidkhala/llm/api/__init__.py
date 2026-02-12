@@ -3,10 +3,11 @@ import datetime
 from davidkhala.utils.http_request import Request
 
 from davidkhala.llm.model.chat import ChatAware
-from davidkhala.llm.model.garden import GardenAlike
+from davidkhala.llm.model.embed import EmbeddingAware
+from davidkhala.llm.model.garden import GardenAlike, ID
 
 
-class API(ChatAware, Request, GardenAlike):
+class API(Request, ChatAware, EmbeddingAware, GardenAlike):
     def __init__(self, api_key: str, base_url: str):
         ChatAware.__init__(self)
         Request.__init__(self, {
@@ -31,6 +32,13 @@ class API(ChatAware, Request, GardenAlike):
             'model': response['model'],
         }
 
-    def list_models(self):
+    def encode(self, *_input: str) -> list[list[float]]:
+        response = self.request(f"{self.base_url}/embeddings", "POST", json={
+            'input': _input,
+            'model': self.model
+        })
+        return [_['embedding'] for _ in response['data']]
+
+    def list_models(self)->list[ID]:
         response = self.request(f"{self.base_url}/models", "GET")
         return response['data']

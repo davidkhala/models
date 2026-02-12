@@ -33,30 +33,30 @@ class EmbeddingTestCase(BaseTest):
         self.assertEqual(2, len(r))
 
     def test_empty(self):
-        _.as_embeddings('BAAI/bge-m3')
+        self._.as_embeddings('BAAI/bge-m3')
         with self.assertRaises(HTTPError) as e:
-            _.encode("")
+            self._.encode("")
         self.assertEqual(400, e.exception.response.status_code)
 
 
-class RerankTestCase(unittest.TestCase):
+class RerankTestCase(BaseTest):
 
     def test_model_compare(self):
-        _.model = 'BAAI/bge-reranker-v2-m3'
+        self._.model = 'BAAI/bge-reranker-v2-m3'
         query = 'apple'
         docs = ["apple", "banana", "fruit", "vegetable"]
-        self.assertEqual('apple', _.which(query, docs)[0])
-        _.model = 'Qwen/Qwen3-Reranker-8B'  # unnatural model, and inconsistent
-        self.assertIn(_.which(query, docs)[0], ['apple', 'banana'])
-        _.model = 'Qwen/Qwen3-Reranker-4B' # unnatural model, and inconsistent
-        self.assertIn(_.which(query, docs)[0], ['banana', 'fruit'])
-        _.model = 'Qwen/Qwen3-Reranker-0.6B'
-        self.assertEqual('apple', _.which(query, docs)[0])
+        self.assertEqual('apple', self._.which(query, docs)[0])
+        self._.model = 'Qwen/Qwen3-Reranker-8B'  # unnatural model, and inconsistent
+        self.assertIn(self._.which(query, docs)[0], ['apple', 'banana'])
+        self._.model = 'Qwen/Qwen3-Reranker-4B' # unnatural model, and inconsistent
+        self.assertIn(self._.which(query, docs)[0], ['banana', 'fruit'])
+        self._.model = 'Qwen/Qwen3-Reranker-0.6B'
+        self.assertEqual('apple', self._.which(query, docs)[0])
 
     def test_null(self):
-        _.model = 'BAAI/bge-reranker-v2-m3'
+        self._.model = 'BAAI/bge-reranker-v2-m3'
         with self.assertRaises(HTTPError) as e:
-            _.which('apple', [])  # bad request
+            self._.which('apple', [])  # bad request
         self.assertEqual(400, e.exception.response.status_code)
 
 

@@ -40,14 +40,6 @@ class SiliconFlow(API, EmbeddingAware, Reranker):
     def chat(self, *user_prompt: str):
         return super().chat(*user_prompt, model=self.model, timeout=50)
 
-    def encode(self, *_input: str) -> list[list[float]]:
-        json = {
-            'input': _input,
-            'model': self.model
-        }
-        response = self.request(f"{self.base_url}/embeddings", "POST", json=json)
-        return [_['embedding'] for _ in response['data']]
-
     def which(self, query: str, documents: list[str], **kwargs) -> tuple[str, int]:
         json = {
             'model': self.model,
