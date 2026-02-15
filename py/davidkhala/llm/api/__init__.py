@@ -2,7 +2,7 @@ import datetime
 
 from davidkhala.utils.http_request import Request
 
-from davidkhala.llm.model.chat import ChatAware
+from davidkhala.llm.model.chat import ChatAware, Prompt
 from davidkhala.llm.model.embed import EmbeddingAware
 from davidkhala.llm.model.garden import GardenAlike, ID
 
@@ -15,7 +15,7 @@ class API(Request, ChatAware, EmbeddingAware, GardenAlike):
         })
         self.base_url = base_url + '/v1'
 
-    def chat(self, *user_prompt: str, **kwargs):
+    def chat(self, *user_prompt: Prompt, **kwargs):
         json = {
             "messages": self.messages_from(*user_prompt),
             **kwargs,

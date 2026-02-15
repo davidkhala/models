@@ -5,7 +5,7 @@ from openrouter.operations import ListData, CreateEmbeddingsResponseBody
 from typing_extensions import Literal
 
 from davidkhala.llm.model import SDKProtocol, Connectable
-from davidkhala.llm.model.chat import on_response
+from davidkhala.llm.model.chat import on_response, Prompt
 from davidkhala.llm.model.embed import EmbeddingAware
 from davidkhala.llm.model.openrouter import OpenRouterModel
 
@@ -15,14 +15,19 @@ class Client(OpenRouterModel, EmbeddingAware, SDKProtocol, Connectable):
         super().__init__()
         self.client: OpenRouter = OpenRouter(api_key)
 
-    def chat(self, *user_prompt) -> str:
+    def chat(self, *user_prompt:Prompt) -> str:
         """
         openrouter has no `n` parameter support
+        
+        Do not support FilePrompt yet
         """
+        plugins = []
+
         r = self.client.chat.send(
             model=self.model,
             models=self._models,
-            messages=self.messages_from(*user_prompt)
+            messages=self.messages_from(*user_prompt),
+            plugins=plugins
         )
         return on_response(r, None)[0]
 

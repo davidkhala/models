@@ -5,7 +5,8 @@ from davidkhala.utils.http_request import default_on_response
 from requests import Response
 
 from davidkhala.llm.api import API
-from davidkhala.llm.model.openrouter import OpenRouterModel
+from davidkhala.llm.model.chat import Prompt
+from davidkhala.llm.model.openrouter import OpenRouterModel, Plugins
 
 
 class OpenRouter(API, OpenRouterModel):
@@ -23,6 +24,9 @@ class OpenRouter(API, OpenRouterModel):
 
     @staticmethod
     def on_response(response: requests.Response):
+        """
+        used as self.on_response(response)
+        """
         r = default_on_response(response)
         # openrouter special error on response.ok
         err = r.get('error')
@@ -45,13 +49,18 @@ class OpenRouter(API, OpenRouterModel):
             else:
                 raise
 
-    def chat(self, *user_prompt: str, **kwargs):
+    def chat(self, *user_prompt: Prompt, pdf_engine: Plugins.PDF_ENGINE = 'pdf-text'):
+        options = {
+            'plugins':[
+                Plugins.pdf(pdf_engine)
+            ]
+        }
         if self._models:
-            kwargs["models"] = self._models
+            options["models"] = self._models
         else:
-            kwargs["model"] = self.model
+            options["model"] = self.model
 
-        r = super().chat(*user_prompt, **kwargs)
+        r = super().chat(*user_prompt, **options)
 
         data = r['data']
         assert len(data) == 1  # only has one answer. Openrouter use models as pool for load-balance only

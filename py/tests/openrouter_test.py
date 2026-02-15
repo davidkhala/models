@@ -28,7 +28,8 @@ class SDKTestCase(unittest.TestCase):
         self.openrouter.as_chat('openrouter/free', sys_prompt='You are a shiny girl today')
         r = self.openrouter.chat('Hello!')
         print(r)
-    @skipIf(os.environ.get('CI'),"paid model")
+
+    @skipIf(os.environ.get('CI'), "paid model")
     def test_embed(self):
         self.openrouter.as_embeddings('mistralai/codestral-embed-2505')
 

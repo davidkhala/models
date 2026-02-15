@@ -4,9 +4,12 @@ version = "0.0.0"
 description = "GenAI models"
 readme = "README.md"
 requires-python = ">=3.12"
-
+dependencies = [
+    "pydantic", "davidkhala-utils"
+]
 [project.optional-dependencies]
 api = ["davidkhala.utils[http_request]"]
+ocr = ["davidkhala.ml.ocr"]
 minimax = ["anthropic", "openai"]
 openrouter = ["openrouter"]
 atlas = ["voyageai"]

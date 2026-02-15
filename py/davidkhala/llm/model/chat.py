@@ -1,5 +1,9 @@
+from pathlib import Path
 from typing import Protocol, Any, Iterable, TypedDict
 
+from pydantic import BaseModel
+from davidkhala.utils.syntax.format import Base64
+from davidkhala.utils.syntax.url import filename_from
 from davidkhala.llm.model import ModelAware
 
 
@@ -15,9 +19,20 @@ class ChoicesAware(Protocol):
     choices: list[ChoiceProtocol]
 
 
-class ImagePromptDict(TypedDict):
+class MultimodalPrompt(BaseModel):
     text: str
+
+
+class ImagePrompt(MultimodalPrompt):
     image_url: list[str]
+
+
+class FilePrompt(MultimodalPrompt):
+    url: str | None = None # TODO can it be multiple like urls:list[str]?
+    path: Path | None = None # either by url or path
+
+
+Prompt = str | ImagePrompt | FilePrompt
 
 
 def on_response(response: ChoicesAware, n: int | None):
@@ -32,14 +47,28 @@ class MessageDict(TypedDict):
     role: str
 
 
-def messages_from(*user_prompt: str | ImagePromptDict) -> Iterable[MessageDict]:
+def messages_from(*user_prompt: Prompt) -> Iterable[MessageDict]:
     for _ in user_prompt:
         message = MessageDict(role='user', content=None)
-        if type(_) == str:
-            message['content'] = _
-        elif type(_) == dict:
-            message['content'] = [{"type": "text", "text": _['text']}]
-            message['content'].extend({"type": "image_url", "image_url": {"url": i}} for i in _['image_url'])
+        match _:
+            case str():
+                message['content'] = _
+            case MultimodalPrompt():
+                message['content'] = [{"type": "text", "text": _.text}]
+                match _:
+                    case ImagePrompt():
+                        message['content'].extend({"type": "image_url", "image_url": {"url": i}} for i in _.image_url)
+                    case FilePrompt():
+                        if _.url:
+                            _filename = filename_from(_.url)
+                            url = _.url
+                        else:
+                            _filename = _.path.name
+                            url = f"data:application/pdf;base64,{Base64.encode_file(_.path)}"
+                        message['content'].extend([{"type": "file", "file": {
+                            "filename": _filename, "file_data": url
+                        }}])
+
         yield message
 
 
@@ -57,7 +86,7 @@ class ChatAware(ModelAware):
     def chat(self, *user_prompt, **kwargs): ...
 
     def messages_from(self, *user_prompt) -> list[MessageDict]:
-        messages = list(self.messages)
+        messages = list(self.messages)  # clone a copy
         messages.extend(messages_from(*user_prompt))
         return messages
 
