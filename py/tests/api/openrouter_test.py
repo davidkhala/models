@@ -28,13 +28,17 @@ class ChatTestCase(BaseTestCase):
             url='https://bitcoin.org/bitcoin.pdf'
         ))
         print(r)
+
     def test_local_pdf(self):
         self.openrouter.as_chat('openrouter/free')
-        r = self.openrouter.chat(FilePrompt(
+        r1 = self.openrouter.chat(FilePrompt(
             text='Summerize this pdf',
             path=resolve(__file__, '../../fixtures/empty.pdf')
         ))
-        print(r)
+        print(self.openrouter.messages)
+        r2 = self.openrouter.chat('Learn from the annotations')
+        print(r2)
+
     def test_chat_models(self):
         self.openrouter.as_chat("deepseek/deepseek-r1-0528:free", "deepseek/deepseek-chat-v3.1")
         r = self.openrouter.chat('who am I?')
@@ -77,7 +81,7 @@ class RegionLimitTestCase(BaseTestCase):
         for model in allowed_models:
             self.openrouter.as_chat(model)
             r = self.openrouter.chat('return True')
-            print(model, r['data'][0])
+            print(model, r)
 
     def test_openai_limit(self):
         if os.environ.get('CI'):

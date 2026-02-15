@@ -16,20 +16,29 @@ class API(Request, ChatAware, EmbeddingAware, GardenAlike):
         self.base_url = base_url + '/v1'
 
     def chat(self, *user_prompt: Prompt, **kwargs):
+        self.messages.extend(self.messages_from(*user_prompt))
         json = {
-            "messages": self.messages_from(*user_prompt),
+            "messages": self.messages,
             **kwargs,
         }
 
         response = self.request(f"{self.base_url}/chat/completions", "POST", json=json)
 
+        data = []
+        file_annotations = []
+        for _ in response['choices']:
+            data.append(_['message']['content'])
+            _a = _["message"].get('annotations')
+            if _a: file_annotations.append(_a)
+
         return {
-            "data": list(map(lambda x: x['message']['content'], response['choices'])),
+            "data": data,
             "meta": {
                 "usage": response['usage'],
-                "created": datetime.datetime.fromtimestamp(response['created'])
+                "created": datetime.datetime.fromtimestamp(response['created']),
             },
             'model': response['model'],
+            'annotations': file_annotations,
         }
 
     def encode(self, *_input: str) -> list[list[float]]:
@@ -39,6 +48,6 @@ class API(Request, ChatAware, EmbeddingAware, GardenAlike):
         })
         return [_['embedding'] for _ in response['data']]
 
-    def list_models(self)->list[ID]:
+    def list_models(self) -> list[ID]:
         response = self.request(f"{self.base_url}/models", "GET")
         return response['data']

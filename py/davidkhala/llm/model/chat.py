@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Protocol, Any, Iterable, TypedDict
+from typing import Protocol, Any, Iterable, TypedDict, Literal, NotRequired
 
 from pydantic import BaseModel
 from davidkhala.utils.syntax.format import Base64
@@ -28,8 +28,8 @@ class ImagePrompt(MultimodalPrompt):
 
 
 class FilePrompt(MultimodalPrompt):
-    url: str | None = None # TODO can it be multiple like urls:list[str]?
-    path: Path | None = None # either by url or path
+    url: str | None = None  # TODO can it be multiple like urls:list[str]?
+    path: Path | None = None  # either by url or path
 
 
 Prompt = str | ImagePrompt | FilePrompt
@@ -42,14 +42,39 @@ def on_response(response: ChoicesAware, n: int | None):
     return contents
 
 
+class ImageContentPart(TypedDict):
+    type: Literal['image_url']
+    image_url: NotRequired[dict]
+
+
+class TextContentPart(TypedDict):
+    type: Literal['text']
+    text: str
+
+
+ContentPart = TextContentPart | ImageContentPart
+
+
+class FileAnnotation(TypedDict):
+    hash: str
+    name: str | None
+    content: list[ContentPart]
+
+
+class AnnotationDict(TypedDict):
+    type: Literal['file']
+    file: FileAnnotation
+
+
 class MessageDict(TypedDict):
-    content: str | list | None
+    content: NotRequired[str | list]
     role: str
+    annotations: NotRequired[list[AnnotationDict]]
 
 
 def messages_from(*user_prompt: Prompt) -> Iterable[MessageDict]:
     for _ in user_prompt:
-        message = MessageDict(role='user', content=None)
+        message = MessageDict(role='user')
         match _:
             case str():
                 message['content'] = _
@@ -83,12 +108,20 @@ class ChatAware(ModelAware):
         if sys_prompt is not None:
             self.messages = [MessageDict(role='system', content=sys_prompt)]
 
-    def chat(self, *user_prompt, **kwargs): ...
+    def chat(self, *user_prompt, **kwargs):
+        ...
 
     def messages_from(self, *user_prompt) -> list[MessageDict]:
         messages = list(self.messages)  # clone a copy
         messages.extend(messages_from(*user_prompt))
         return messages
+
+    def with_annotations(self, annotations: list[AnnotationDict]):
+        # file should not be excluded from message thread. Just openrouter will skip parsing costs
+        self.messages.append({
+            "role": "assistant",
+            "annotations": annotations,
+        })
 
 
 class CompareChatAware(ChatAware):

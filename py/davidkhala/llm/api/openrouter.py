@@ -22,22 +22,23 @@ class OpenRouter(API, OpenRouterModel):
             self.options["headers"]["X-Title"] = kwargs['leaderboard']['name']
         self.retry = True
 
-    @staticmethod
-    def on_response(response: requests.Response):
-        """
-        used as self.on_response(response)
-        """
-        r = default_on_response(response)
-        # openrouter special error on response.ok
-        err = r.get('error')
-        if err:
-            derived_response = Response()
-            derived_response.status_code = err['code']
-            derived_response.reason = err['message']
-            derived_response.metadata = err.get("metadata")
+        def on_response(response: requests.Response):
+            """
 
-            derived_response.raise_for_status()
-        return r
+            """
+            r = default_on_response(response)
+            # openrouter special error on response.ok
+            err = r.get('error')
+            if err:
+                derived_response = Response()
+                derived_response.status_code = err['code']
+                derived_response.reason = err['message']
+                derived_response.metadata = err.get("metadata")
+
+                derived_response.raise_for_status()
+            return r
+
+        self.on_response = on_response
 
     def request(self, url, method: str, params=None, data=None, json=None) -> dict:
         try:
@@ -50,8 +51,8 @@ class OpenRouter(API, OpenRouterModel):
                 raise
 
     def chat(self, *user_prompt: Prompt, pdf_engine: Plugins.PDF_ENGINE = 'pdf-text'):
-        options = {
-            'plugins':[
+        options: dict = {
+            'plugins': [
                 Plugins.pdf(pdf_engine)
             ]
         }
@@ -62,8 +63,11 @@ class OpenRouter(API, OpenRouterModel):
 
         r = super().chat(*user_prompt, **options)
 
-        data = r['data']
+        data, _a = r['data'], r['annotations']
         assert len(data) == 1  # only has one answer. Openrouter use models as pool for load-balance only
+        if _a:
+            assert len(_a) == 1
+            self.with_annotations(_a[0])
         if self._models:
             assert r['model'] in self._models
         return data[0]

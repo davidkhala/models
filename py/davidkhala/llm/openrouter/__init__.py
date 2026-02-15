@@ -22,11 +22,11 @@ class Client(OpenRouterModel, EmbeddingAware, SDKProtocol, Connectable):
         Do not support FilePrompt yet
         """
         plugins = []
-
+        self.messages.extend(self.messages_from(*user_prompt))
         r = self.client.chat.send(
             model=self.model,
             models=self._models,
-            messages=self.messages_from(*user_prompt),
+            messages=self.messages,
             plugins=plugins
         )
         return on_response(r, None)[0]
