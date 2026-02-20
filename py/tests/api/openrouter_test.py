@@ -25,7 +25,7 @@ class ChatTestCase(BaseTestCase):
         self.openrouter.as_chat('openrouter/free')
         r = self.openrouter.chat(FilePrompt(
             text='Summerize this pdf',
-            url='https://bitcoin.org/bitcoin.pdf'
+            url=['https://bitcoin.org/bitcoin.pdf']
         ))
         print(r)
 
@@ -33,11 +33,20 @@ class ChatTestCase(BaseTestCase):
         self.openrouter.as_chat('openrouter/free')
         r1 = self.openrouter.chat(FilePrompt(
             text='Summerize this pdf',
-            path=resolve(__file__, '../../fixtures/empty.pdf')
+            url=['https://bitcoin.org/bitcoin.pdf'],
+            path=[resolve(__file__, '../../fixtures/empty.pdf')]
         ))
         print(self.openrouter.messages)
         r2 = self.openrouter.chat('Learn from the annotations')
         print(r2)
+    def test_mix_pdf(self):
+        self.openrouter.as_chat('openrouter/free')
+        r1 = self.openrouter.chat(FilePrompt(
+            text='Summerize these 2 pdf',
+            url=['https://bitcoin.org/bitcoin.pdf'],
+            path=[resolve(__file__, '../../fixtures/empty.pdf')]
+        ))
+        print(r1)
 
     def test_chat_models(self):
         self.openrouter.as_chat("deepseek/deepseek-r1-0528:free", "deepseek/deepseek-chat-v3.1")

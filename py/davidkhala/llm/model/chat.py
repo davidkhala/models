@@ -28,8 +28,8 @@ class ImagePrompt(MultimodalPrompt):
 
 
 class FilePrompt(MultimodalPrompt):
-    url: str | None = None  # TODO can it be multiple like urls:list[str]?
-    path: Path | None = None  # either by url or path
+    url: list[str] | None = None
+    path: list[Path] | None = None
 
 
 Prompt = str | ImagePrompt | FilePrompt
@@ -85,14 +85,15 @@ def messages_from(*user_prompt: Prompt) -> Iterable[MessageDict]:
                         message['content'].extend({"type": "image_url", "image_url": {"url": i}} for i in _.image_url)
                     case FilePrompt():
                         if _.url:
-                            _filename = filename_from(_.url)
-                            url = _.url
-                        else:
-                            _filename = _.path.name
-                            url = f"data:application/pdf;base64,{Base64.encode_file(_.path)}"
-                        message['content'].extend([{"type": "file", "file": {
-                            "filename": _filename, "file_data": url
-                        }}])
+                            message['content'].extend({"type": "file", "file": {
+                                "filename": filename_from(item), "file_data": item
+                            }} for item in _.url)
+
+                        if _.path:
+                            message['content'].extend({"type": "file", "file": {
+                                "filename": item.name,
+                                "file_data": f"data:application/pdf;base64,{Base64.encode_file(item)}"
+                            }} for item in _.path)
 
         yield message
 
