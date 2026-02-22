@@ -1,35 +1,61 @@
 import os
-import time
 import unittest
+from unittest import skipIf
+
+from requests import HTTPError
 
 from davidkhala.llm.api.siliconflow import SiliconFlow
-from requests import HTTPError
+
 
 class BaseTest(unittest.TestCase):
     def setUp(self):
         api_key = os.environ.get('API_KEY')
         self._ = SiliconFlow(api_key)
 
-class CommonTests(BaseTest):
+
+class ModelsTestCase(BaseTest):
     def test_models(self):
         _models = self._.list_models()
         print(_models)
 
 
 class ChatTestCase(BaseTest):
-
-    def test_chat(self):
+    from davidkhala.llm.model.chat import ImagePrompt
+    def test_free(self):
+        self._.reset()
         self._.as_chat('deepseek-ai/DeepSeek-R1-0528-Qwen3-8B')
         r = self._.chat('who am I?')
+        self.assertEqual(1, len(r))
         print(r)
+
+    @skipIf(os.environ.get('CI'), "paid model")
+    def test_n(self):
+        self._.reset()
+        self._.as_chat('Pro/MiniMaxAI/MiniMax-M2.5')
+        self._.n = 2
+        r = self._.chat('who am I?')
+        self.assertEqual(2, len(r))
+        print(r)
+
+    @skipIf(os.environ.get('CI'), "paid model")
+    def test_n_multimodal(self):
+        self._.reset()
+        self._.as_chat('Qwen/Qwen3-VL-32B-Instruct')
+        self._.n = 2
+        r1 = self._.chat(ChatTestCase.ImagePrompt(
+            text='Are these 2 images identical?',
+            image_url=[
+                "https://sf-maas-uat-prod.oss-cn-shanghai.aliyuncs.com/dog.png",
+                "https://sf-maas-uat-prod.oss-cn-shanghai.aliyuncs.com/dog.png"
+            ],
+        ))
+        print(r1)
 
 
 class EmbeddingTestCase(BaseTest):
     def test_array(self):
         self._.as_embeddings('BAAI/bge-m3')
-        start_time = time.time()
         r = self._.encode("abc--------------------------------", "edf-----------------")
-        print(time.time() - start_time)
         self.assertEqual(2, len(r))
 
     def test_empty(self):
@@ -48,7 +74,7 @@ class RerankTestCase(BaseTest):
         self.assertEqual('apple', self._.which(query, docs)[0])
         self._.model = 'Qwen/Qwen3-Reranker-8B'  # unnatural model, and inconsistent
         self.assertIn(self._.which(query, docs)[0], ['apple', 'banana'])
-        self._.model = 'Qwen/Qwen3-Reranker-4B' # unnatural model, and inconsistent
+        self._.model = 'Qwen/Qwen3-Reranker-4B'  # unnatural model, and inconsistent
         self.assertIn(self._.which(query, docs)[0], ['banana', 'fruit'])
         self._.model = 'Qwen/Qwen3-Reranker-0.6B'
         self.assertEqual('apple', self._.which(query, docs)[0])

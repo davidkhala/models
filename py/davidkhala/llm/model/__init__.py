@@ -1,19 +1,7 @@
-from typing import Protocol, Any
-
-class RequestProtocol(Protocol):
-    base_url: str
-
-class ClientProtocol(RequestProtocol):
-    api_key: str
-
-
 class ModelAware:
     def __init__(self):
+        super().__init__()
         self.model: str | None = None
-
-
-class SDKProtocol(Protocol):
-    client: Any
 
 
 class Connectable:

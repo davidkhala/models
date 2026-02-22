@@ -1,21 +1,20 @@
 import os
 import unittest
+from unittest import skipIf
 
 from davidkhala.utils.syntax.path import resolve
 from requests import HTTPError
-
-from davidkhala.llm.api.openrouter import OpenRouter as OpenRouterAPI
-from davidkhala.llm.model.chat import FilePrompt
 
 
 class BaseTestCase(unittest.TestCase):
     def setUp(self):
         api_key = os.environ.get('API_KEY')
+        from davidkhala.llm.api.openrouter import OpenRouter as OpenRouterAPI
         self.openrouter = OpenRouterAPI(api_key)
 
 
 class ChatTestCase(BaseTestCase):
-
+    from davidkhala.llm.model.chat import FilePrompt
     def test_chat(self):
         self.openrouter.as_chat("openrouter/free")
         r = self.openrouter.chat('who am I?')
@@ -23,7 +22,7 @@ class ChatTestCase(BaseTestCase):
 
     def test_url_pdf(self):
         self.openrouter.as_chat('openrouter/free')
-        r = self.openrouter.chat(FilePrompt(
+        r = self.openrouter.chat(ChatTestCase.FilePrompt(
             text='Summerize this pdf',
             url=['https://bitcoin.org/bitcoin.pdf']
         ))
@@ -31,7 +30,7 @@ class ChatTestCase(BaseTestCase):
 
     def test_local_pdf(self):
         self.openrouter.as_chat('openrouter/free')
-        r1 = self.openrouter.chat(FilePrompt(
+        r1 = self.openrouter.chat(ChatTestCase.FilePrompt(
             text='Summerize this pdf',
             url=['https://bitcoin.org/bitcoin.pdf'],
             path=[resolve(__file__, '../../fixtures/empty.pdf')]
@@ -39,15 +38,18 @@ class ChatTestCase(BaseTestCase):
         print(self.openrouter.messages)
         r2 = self.openrouter.chat('Learn from the annotations')
         print(r2)
+
     def test_mix_pdf(self):
         self.openrouter.as_chat('openrouter/free')
-        r1 = self.openrouter.chat(FilePrompt(
+        r1 = self.openrouter.chat(ChatTestCase.FilePrompt(
             text='Summerize these 2 pdf',
             url=['https://bitcoin.org/bitcoin.pdf'],
             path=[resolve(__file__, '../../fixtures/empty.pdf')]
         ))
+        print(self.openrouter.messages)
         print(r1)
 
+    @skipIf(os.environ.get('CI'), "paid model")
     def test_chat_models(self):
         self.openrouter.as_chat("deepseek/deepseek-r1-0528:free", "deepseek/deepseek-chat-v3.1")
         r = self.openrouter.chat('who am I?')

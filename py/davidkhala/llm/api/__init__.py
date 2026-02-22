@@ -7,16 +7,18 @@ from davidkhala.llm.model.embed import EmbeddingAware
 from davidkhala.llm.model.garden import GardenAlike, ID
 
 
-class API(Request, ChatAware, EmbeddingAware, GardenAlike):
+class API(Request):
     def __init__(self, api_key: str, base_url: str):
-        ChatAware.__init__(self)
-        Request.__init__(self, {
+        super().__init__({
             "bearer": api_key
         })
         self.base_url = base_url + '/v1'
 
+
+class ChatAPI(API, ChatAware):
+
     def chat(self, *user_prompt: Prompt, **kwargs):
-        self.messages.extend(self.messages_from(*user_prompt))
+        self.messages_from(*user_prompt)
         json = {
             "messages": self.messages,
             **kwargs,
@@ -41,6 +43,8 @@ class API(Request, ChatAware, EmbeddingAware, GardenAlike):
             'annotations': file_annotations,
         }
 
+
+class EmbeddingAPI(API, EmbeddingAware):
     def encode(self, *_input: str) -> list[list[float]]:
         response = self.request(f"{self.base_url}/embeddings", "POST", json={
             'input': _input,
@@ -48,6 +52,8 @@ class API(Request, ChatAware, EmbeddingAware, GardenAlike):
         })
         return [_['embedding'] for _ in response['data']]
 
+
+class GardenAPI(API, GardenAlike):
     def list_models(self) -> list[ID]:
         response = self.request(f"{self.base_url}/models", "GET")
         return response['data']

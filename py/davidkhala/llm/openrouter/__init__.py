@@ -4,13 +4,13 @@ from openrouter.errors import UnauthorizedResponseError
 from openrouter.operations import ListData, CreateEmbeddingsResponseBody
 from typing_extensions import Literal
 
-from davidkhala.llm.model import SDKProtocol, Connectable
+from davidkhala.llm.model import Connectable
 from davidkhala.llm.model.chat import on_response, Prompt
 from davidkhala.llm.model.embed import EmbeddingAware
 from davidkhala.llm.model.openrouter import OpenRouterModel
 
 
-class Client(OpenRouterModel, EmbeddingAware, SDKProtocol, Connectable):
+class Client(OpenRouterModel, EmbeddingAware, Connectable):
     def __init__(self, api_key: str):
         super().__init__()
         self.client: OpenRouter = OpenRouter(api_key)
@@ -22,14 +22,14 @@ class Client(OpenRouterModel, EmbeddingAware, SDKProtocol, Connectable):
         Do not support FilePrompt yet
         """
         plugins = []
-        self.messages.extend(self.messages_from(*user_prompt))
+        self.messages_from(*user_prompt)
         r = self.client.chat.send(
             model=self.model,
             models=self._models,
             messages=self.messages,
             plugins=plugins
         )
-        return on_response(r, None)[0]
+        return on_response(r, OpenRouterModel.n)[0]
 
     def connect(self):
         try:
@@ -54,6 +54,7 @@ class Client(OpenRouterModel, EmbeddingAware, SDKProtocol, Connectable):
 
 class Admin:
     def __init__(self, provisioning_key: str):
+        super().__init__()
         self.provisioning_key = provisioning_key
         self.client = OpenRouter(provisioning_key)
 

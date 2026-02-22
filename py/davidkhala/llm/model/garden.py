@@ -1,8 +1,4 @@
-from typing import Protocol
-
-
-class ID(Protocol):
-    id: str
+from davidkhala.utils.protocol import ID
 
 
 class GardenAlike:

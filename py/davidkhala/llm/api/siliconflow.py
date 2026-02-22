@@ -1,9 +1,32 @@
-from davidkhala.llm.api import API
-from davidkhala.llm.model.embed import EmbeddingAware
+from davidkhala.utils.http_request import default_on_response
+from requests import Response, HTTPError as RawHTTPError
+
+from davidkhala.llm.api import GardenAPI, ChatAPI, EmbeddingAPI
+from davidkhala.llm.model.chat import ImagePrompt, ChoicesChat
 from davidkhala.llm.model.rerank import Reranker
 
+Prompt = str | ImagePrompt
 
-class SiliconFlow(API, EmbeddingAware, Reranker):
+
+class HTTPError(RawHTTPError):
+    @staticmethod
+    def from_raw(err: RawHTTPError):
+        return HTTPError(err.args[0], response=err.response)
+
+    @property
+    def code(self):
+        return self.json['code']
+
+    @property
+    def json(self):
+        return self.response.json()
+
+    @property
+    def message(self):
+        return self.json['message']
+
+
+class SiliconFlow(ChatAPI, ChoicesChat, Reranker, EmbeddingAPI, GardenAPI):
     @property
     def free_models(self) -> list[str]:
         """
@@ -37,8 +60,24 @@ class SiliconFlow(API, EmbeddingAware, Reranker):
     def __init__(self, api_key: str):
         super().__init__(api_key, 'https://api.siliconflow.cn')
 
-    def chat(self, *user_prompt: str):
-        return super().chat(*user_prompt, model=self.model, timeout=50)
+        def on_response(response: Response):
+            try:
+                return default_on_response(response)
+            except RawHTTPError as e:
+                raise HTTPError.from_raw(e)
+
+        self.on_response = on_response
+
+    def chat(self, *user_prompt: Prompt):
+        r = super().chat(*user_prompt, model=self.model, timeout=50, n=self.n)
+
+        data = r['data']
+        assert len(data) == self.n
+        # siliconflow has no data structure in choices[0].message.annotations
+        # See in https://docs.siliconflow.cn/cn/api-reference/chat-completions/chat-completions#response-choices-items-message
+        assert len(r['annotations']) == 0
+        #
+        return data
 
     def which(self, query: str, documents: list[str], **kwargs) -> tuple[str, int]:
         json = {

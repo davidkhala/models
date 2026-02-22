@@ -1,19 +1,17 @@
-import time
+from time import sleep
 
 import requests
 from davidkhala.utils.http_request import default_on_response
 from requests import Response
 
-from davidkhala.llm.api import API
+from davidkhala.llm.api import EmbeddingAPI, ChatAPI
 from davidkhala.llm.model.chat import Prompt
 from davidkhala.llm.model.openrouter import OpenRouterModel, Plugins
 
 
-class OpenRouter(API, OpenRouterModel):
-
+class OpenRouter(ChatAPI, EmbeddingAPI, OpenRouterModel):
     def __init__(self, api_key: str, **kwargs):
-        API.__init__(self, api_key, 'https://openrouter.ai/api')
-        OpenRouterModel.__init__(self)
+        super().__init__(api_key=api_key, base_url='https://openrouter.ai/api')
 
         if 'leaderboard' in kwargs and type(kwargs['leaderboard']) is dict:
             # Site URL for rankings on openrouter.ai.
@@ -40,13 +38,13 @@ class OpenRouter(API, OpenRouterModel):
 
         self.on_response = on_response
 
-    def request(self, url, method: str, params=None, data=None, json=None) -> dict:
+    def request(self, *args, **kwargs) -> dict:
         try:
-            return super().request(url, method, params, data, json)
+            return super().request(*args, **kwargs)
         except requests.HTTPError as e:
             if e.response.status_code == 429 and self.retry:  # 429: You are being rate limited
-                time.sleep(1)
-                return self.request(url, method, params, data, json)
+                sleep(1)
+                return self.request(*args, **kwargs)
             else:
                 raise
 
@@ -64,9 +62,9 @@ class OpenRouter(API, OpenRouterModel):
         r = super().chat(*user_prompt, **options)
 
         data, _a = r['data'], r['annotations']
-        assert len(data) == 1  # only has one answer. Openrouter use models as pool for load-balance only
+        assert len(data) == OpenRouter.n
+        assert len(_a) <= OpenRouter.n
         if _a:
-            assert len(_a) == 1
             self.with_annotations(_a[0])
         if self._models:
             assert r['model'] in self._models
