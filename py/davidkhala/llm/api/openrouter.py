@@ -4,12 +4,12 @@ import requests
 from davidkhala.utils.http_request import default_on_response
 from requests import Response
 
-from davidkhala.llm.api import EmbeddingAPI, ChatAPI
+from davidkhala.llm.api import EmbeddingAPI, ChatAPI, GardenAPI
 from davidkhala.llm.model.chat import Prompt
 from davidkhala.llm.model.openrouter import OpenRouterModel, Plugins
 
 
-class OpenRouter(ChatAPI, EmbeddingAPI, OpenRouterModel):
+class OpenRouter(ChatAPI, EmbeddingAPI, GardenAPI, OpenRouterModel):
     def __init__(self, api_key: str, **kwargs):
         super().__init__(api_key=api_key, base_url='https://openrouter.ai/api')
 
@@ -73,3 +73,7 @@ class OpenRouter(ChatAPI, EmbeddingAPI, OpenRouterModel):
     @property
     def models(self) -> list[str]:
         return [m['id'] for m in self.list_models()]
+
+    @property
+    def free_models(self) -> list[str]:
+        return ['openrouter/free', *(_['id'] for _ in self.list_models() if _['id'].endswith(':free'))]

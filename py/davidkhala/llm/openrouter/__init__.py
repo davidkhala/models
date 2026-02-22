@@ -11,15 +11,17 @@ from davidkhala.llm.model.openrouter import OpenRouterModel
 
 
 class Client(OpenRouterModel, EmbeddingAware, Connectable):
+    @property
+    def free_models(self) -> list[str]:
+        return ['openrouter/free', *(_.id for _ in self.list_models() if _.id.endswith(':free'))]
+
     def __init__(self, api_key: str):
         super().__init__()
         self.client: OpenRouter = OpenRouter(api_key)
 
-    def chat(self, *user_prompt:Prompt) -> str:
+    def chat(self, *user_prompt: Prompt) -> str:
         """
-        openrouter has no `n` parameter support
-        
-        Do not support FilePrompt yet
+        python SDK Do not support FilePrompt yet
         """
         plugins = []
         self.messages_from(*user_prompt)

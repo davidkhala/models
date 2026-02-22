@@ -1,7 +1,10 @@
+from abc import ABC, abstractmethod
+
 from davidkhala.utils.protocol import ID
 
 
-class GardenAlike:
+class GardenAlike(ABC):
+    @abstractmethod
     def list_models(self) -> list[ID]: ...
 
     @property
@@ -9,6 +12,5 @@ class GardenAlike:
         return [m.id for m in self.list_models()]
 
     @property
-    def free_models(self) -> list[str]:
-        ...
-        return []
+    @abstractmethod
+    def free_models(self) -> list[str]: ...

@@ -59,8 +59,8 @@ class ChatTestCase(BaseTestCase):
 class ModelsTestCase(BaseTestCase):
     def test_models(self):
         models = self.openrouter.free_models
-        self.assertGreaterEqual(len(models), 26)
-        print(models)
+        self.assertGreaterEqual(len(models), 27)
+        print(len(models), models)
 
 
 class EmbeddingsTestCase(BaseTestCase):

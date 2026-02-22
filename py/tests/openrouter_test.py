@@ -26,7 +26,7 @@ class InfoTestCase(AppTestCase):
         self.assertTrue(self.openrouter.connect())
 
     def test_models(self):
-        r = self.openrouter.models
+        r = self.openrouter.free_models
         print(r)
         for m in self.openrouter.list_models('embeddings'):
             print(m.id)
