@@ -13,6 +13,8 @@ ocr = ["davidkhala.ml.ocr"]
 minimax = ["anthropic", "openai"]
 openrouter = ["openrouter"]
 atlas = ["voyageai"]
+openai = ["openai"]
+azure = ["openai", "davidkhala-ml-ocr"]
 
 [tool.hatch.build.targets.sdist]
 include = ["davidkhala"]

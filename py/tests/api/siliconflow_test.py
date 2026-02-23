@@ -9,7 +9,7 @@ from davidkhala.llm.api.siliconflow import SiliconFlow
 
 class BaseTest(unittest.TestCase):
     def setUp(self):
-        api_key = os.environ.get('API_KEY')
+        api_key = os.environ.get('API_KEY') or 'sk-uqwpfglnfcvuynsnmdxefowawwzoaqqyjzsztbwgdlstmkdx'
         self._ = SiliconFlow(api_key)
 
 
@@ -17,6 +17,11 @@ class ModelsTestCase(BaseTest):
     def test_models(self):
         _models = self._.list_models()
         print(_models)
+    def test_hack_free_models(self):
+        # https://cloud.siliconflow.cn/biz-server/api/v1/playground/17885302824/biz_info
+        model_id = "17885302824"
+        # TODO WIP
+        ...
 
 
 class ChatTestCase(BaseTest):

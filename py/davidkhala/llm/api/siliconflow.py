@@ -1,4 +1,4 @@
-from davidkhala.utils.http_request import default_on_response
+from davidkhala.utils.http_request import default_on_response, Request
 from requests import Response, HTTPError as RawHTTPError
 
 from davidkhala.llm.api import GardenAPI, ChatAPI, EmbeddingAPI
@@ -25,6 +25,13 @@ class HTTPError(RawHTTPError):
     def message(self):
         return self.json['message']
 
+class Console(Request):
+    # TODO siliconflow cn use authenticator login
+    def price_of(self, model_id):
+        # TODO login is required
+        url = f"https://cloud.siliconflow.cn/biz-server/api/v1/playground/{model_id}/biz_info"
+        r = self.request(url, 'GET')
+        return r
 
 class SiliconFlow(ChatAPI, ChoicesChat, Reranker, EmbeddingAPI, GardenAPI):
     @property
