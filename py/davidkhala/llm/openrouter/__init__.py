@@ -24,11 +24,10 @@ class Client(OpenRouterModel, EmbeddingAware, Connectable):
         python SDK Do not support FilePrompt yet
         """
         plugins = []
-        self.messages_from(*user_prompt)
         r = self.client.chat.send(
             model=self.model,
             models=self._models,
-            messages=self.messages,
+            messages=self.messages_from(*user_prompt),
             plugins=plugins
         )
         return on_response(r, OpenRouterModel.n)[0]

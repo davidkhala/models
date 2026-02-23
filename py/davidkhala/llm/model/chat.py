@@ -127,6 +127,7 @@ class ChatAware(ABC, ModelAware):
 
     def messages_from(self, *user_prompt: Prompt):
         self.messages.extend(messages_from(*user_prompt))
+        return self.messages
 
     def with_annotations(self, annotations: list[AnnotationDict]):
         # file should not be excluded from message thread. Just openrouter will skip parsing costs

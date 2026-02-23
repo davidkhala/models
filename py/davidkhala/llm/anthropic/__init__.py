@@ -1,4 +1,5 @@
 from anthropic import Anthropic, __version__
+from anthropic.types import Message
 
 from davidkhala.llm.model.chat import ChatAware, Prompt
 from davidkhala.llm.model.file import FileAware
@@ -16,11 +17,11 @@ class Client(ChatAware, FileAware):
         self.max_tokens = 1024
 
     def chat(self, *user_prompt: Prompt):
-        self.messages_from(*user_prompt)
-        r = self.client.messages.create(
+
+        r: Message = self.client.messages.create(
             model=self.model,
             system=self.system,
-            messages=self.messages,
+            messages=self.messages_from(*user_prompt),
             max_tokens=self.max_tokens,  # required
         )
         self.messages.append({

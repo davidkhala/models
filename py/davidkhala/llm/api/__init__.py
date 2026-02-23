@@ -1,4 +1,5 @@
 import datetime
+from abc import ABC
 from typing import TypedDict
 
 from davidkhala.utils.http_request import Request
@@ -22,9 +23,9 @@ class API(Request):
 class ChatAPI(API, ChatAware):
 
     def chat(self, *user_prompt: Prompt, **kwargs):
-        self.messages_from(*user_prompt)
+
         json = {
-            "messages": self.messages,
+            "messages": self.messages_from(*user_prompt),
             **kwargs,
         }
 
@@ -57,7 +58,7 @@ class EmbeddingAPI(API, EmbeddingAware):
         return [_['embedding'] for _ in response['data']]
 
 
-class GardenAPI(API, GardenAlike):
+class GardenAPI(API, GardenAlike, ABC):
     def list_models(self) -> list[IDDict] :
         response = self.request(f"{self.base_url}/models", "GET")
         return response['data']
