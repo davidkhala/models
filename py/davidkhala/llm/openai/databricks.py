@@ -4,6 +4,9 @@ from davidkhala.llm.openai import Client as BaseClient
 
 class Client(BaseClient):
     def __init__(self, o: str | int, token: str):
+        """
+        :param o: databricks organization id. Appears as parameter of workspace url
+        """
         super().__init__(OpenAI(
             base_url=f"https://{o}.ai-gateway.cloud.databricks.com/mlflow/v1",
             api_key=token

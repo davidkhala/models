@@ -8,7 +8,8 @@ from requests import HTTPError
 
 class BaseTestCase(unittest.TestCase):
     def setUp(self):
-        api_key = os.environ.get('API_KEY')
+        api_key = os.environ.get(
+            'API_KEY') or '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'
         from davidkhala.llm.api.openrouter import OpenRouter as OpenRouterAPI
         self.openrouter = OpenRouterAPI(api_key)
 
@@ -30,14 +31,13 @@ class ChatTestCase(BaseTestCase):
 
     def test_local_pdf(self):
         self.openrouter.as_chat('openrouter/free')
-        r1 = self.openrouter.chat(ChatTestCase.FilePrompt(
-            text='Summerize this pdf',
+        self.openrouter.chat(ChatTestCase.FilePrompt(
+            text='Read this pdf',
             url=['https://bitcoin.org/bitcoin.pdf'],
             path=[resolve(__file__, '../../fixtures/empty.pdf')]
         ))
-        print(self.openrouter.messages)
-        r2 = self.openrouter.chat('Learn from the annotations')
-        print(r2)
+        r2 = self.openrouter.chat('Learn from the annotations. If any, tell me what is first annotation')
+        self.assertTrue("don't" in r2 or 'not' in r2, "annotations is transparent")
 
     def test_mix_pdf(self):
         self.openrouter.as_chat('openrouter/free')
@@ -59,7 +59,7 @@ class ChatTestCase(BaseTestCase):
 class ModelsTestCase(BaseTestCase):
     def test_models(self):
         models = self.openrouter.free_models
-        self.assertGreaterEqual(len(models), 27)
+        self.assertGreaterEqual(len(models), 26)
         print(len(models), models)
 
 

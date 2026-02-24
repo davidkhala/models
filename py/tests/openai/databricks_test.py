@@ -14,7 +14,7 @@ class HotmailFreeEdition(unittest.TestCase):
             _ = self.client.models
         self.assertEqual(e.exception.status_code, 404)
         self.assertEqual(
-            "Error code: 404 - {'error_code': 'ENDPOINT_NOT_FOUND', 'message': 'Path must be of form /serving-endpoints/<endpoint_name>/invocations or /serving-endpoints/<endpoint_name>/served-models/<served_model_name>/invocations'}",
+            "Error code: 404 - {'error_code': 'ENDPOINT_NOT_FOUND', 'message': 'Invalid path: /mlflow/v1/models'}",
             e.exception.message)
 
     def test_chat(self):
