@@ -8,8 +8,7 @@ from requests import HTTPError
 
 class BaseTestCase(unittest.TestCase):
     def setUp(self):
-        api_key = os.environ.get(
-            'API_KEY') or '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'
+        api_key = os.environ.get('API_KEY')
         from davidkhala.llm.api.openrouter import OpenRouter as OpenRouterAPI
         self.openrouter = OpenRouterAPI(api_key)
 

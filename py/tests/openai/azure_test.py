@@ -39,7 +39,7 @@ class ModelDeploymentTestCase(unittest.TestCase):
 
     def test_ocr(self):
         from pathlib import Path
-        file = Path(__file__).parent / "fixtures" / "transcript.png"
+        file = Path(__file__).parent.parent / "fixtures" / "transcript.png"
         from davidkhala.llm.openai.azure import FieldProperties
         schema = {
             'Student': FieldProperties(required=True),
