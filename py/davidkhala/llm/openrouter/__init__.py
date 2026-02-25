@@ -1,4 +1,3 @@
-from openrouter import OpenRouter
 from openrouter.components import Model
 from openrouter.errors import UnauthorizedResponseError
 from openrouter.operations import ListData, CreateEmbeddingsResponseBody
@@ -7,10 +6,12 @@ from typing_extensions import Literal
 from davidkhala.llm.model import Connectable
 from davidkhala.llm.model.chat import on_response, Prompt
 from davidkhala.llm.model.embed import EmbeddingAware
+from davidkhala.llm.model.garden import TrialAvailable
 from davidkhala.llm.model.openrouter import OpenRouterModel
+from openrouter import OpenRouter
 
 
-class Client(OpenRouterModel, EmbeddingAware, Connectable):
+class Client(OpenRouterModel, EmbeddingAware, Connectable, TrialAvailable):
     @property
     def free_models(self) -> list[str]:
         return ['openrouter/free', *(_.id for _ in self.list_models() if _.id.endswith(':free'))]

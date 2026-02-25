@@ -2,6 +2,7 @@ from typing import Literal
 
 from openai import OpenAI, AuthenticationError, PermissionDeniedError
 from openai.types import Model
+from openai.types.chat import ChatCompletion
 
 from davidkhala.llm.model import Connectable
 from davidkhala.llm.model.chat import on_response, ChoicesChat
@@ -10,9 +11,6 @@ from davidkhala.llm.model.garden import GardenAlike
 
 
 class Client(ChoicesChat, EmbeddingAware, GardenAlike, Connectable):
-    @property
-    def free_models(self) -> list[str]:
-        return [] # no free model
 
     def __init__(self, client: OpenAI):
         super().__init__()
@@ -37,15 +35,16 @@ class Client(ChoicesChat, EmbeddingAware, GardenAlike, Connectable):
         )
         return [item.embedding for item in response.data]
 
-    def chat(self, *user_prompt, **kwargs):
-
-        response = self.client.chat.completions.create(
+    def chat_create(self, *user_prompt, **kwargs) -> ChatCompletion:
+        return self.client.chat.completions.create(
             model=self.model,
             messages=self.messages_from(*user_prompt),
             n=self.n,
             **kwargs
         )
 
+    def chat(self, *user_prompt, **kwargs):
+        response: ChatCompletion = self.chat_create(*user_prompt, **kwargs)
         return on_response(response, self.n)
 
     def close(self):

@@ -5,11 +5,12 @@ from davidkhala.utils.http_request import default_on_response
 from requests import Response
 
 from davidkhala.llm.api import EmbeddingAPI, ChatAPI, GardenAPI
+from davidkhala.llm.model.garden import TrialAvailable
 from davidkhala.llm.model.chat import Prompt
 from davidkhala.llm.model.openrouter import OpenRouterModel, Plugins
 
 
-class OpenRouter(ChatAPI, EmbeddingAPI, GardenAPI, OpenRouterModel):
+class OpenRouter(ChatAPI, EmbeddingAPI, GardenAPI, OpenRouterModel, TrialAvailable):
     def __init__(self, api_key: str, **kwargs):
         super().__init__(api_key=api_key, base_url='https://openrouter.ai/api')
 

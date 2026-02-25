@@ -2,7 +2,7 @@ from abc import abstractmethod, ABC
 from pathlib import Path
 from typing import Protocol, Any, Iterable, TypedDict, Literal, NotRequired
 
-from davidkhala.utils.syntax.format import Base64
+from davidkhala.utils.syntax.format import Base64, mime_of
 from davidkhala.utils.syntax.url import filename_from
 from pydantic import BaseModel
 
@@ -75,9 +75,6 @@ class MessageDict(TypedDict):
     annotations: NotRequired[list[AnnotationDict]]
 
 
-import mimetypes
-
-
 def messages_from(*user_prompt: Prompt) -> Iterable[MessageDict]:
     for _ in user_prompt:
         message = MessageDict(role='user')
@@ -100,10 +97,9 @@ def messages_from(*user_prompt: Prompt) -> Iterable[MessageDict]:
 
                         if _.path:
                             for item in _.path:
-                                mime, _ = mimetypes.guess_type(item)
                                 message['content'].append({"type": "file", "file": {
                                     "filename": item.name,
-                                    "file_data": f"data:{mime};base64,{Base64.encode_file(item)}"
+                                    "file_data": f"data:{mime_of(item)};base64,{Base64.encode_file(item)}"
                                 }})
 
         yield message

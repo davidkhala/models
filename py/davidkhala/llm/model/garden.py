@@ -11,6 +11,8 @@ class GardenAlike(ABC):
     def models(self) -> list[str]:
         return [m.id for m in self.list_models()]
 
+
+class TrialAvailable(ABC):
     @property
     @abstractmethod
     def free_models(self) -> list[str]: ...

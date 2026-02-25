@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 from davidkhala.utils.syntax.compat import deprecated
+from davidkhala.utils.syntax.format import mime_of
 from openai import OpenAI
 from openai.lib.azure import AzureOpenAI
 from openai.types.chat import (
@@ -35,7 +36,10 @@ class ModelDeploymentClient(AzureHosted):
             api_key=key,
         ))
 
-    def process(self, file: Path, schema: dict[str, FieldProperties]) -> list[dict]:
+    def process(self, file: Path, schema: dict[str, FieldProperties],
+                *,
+                prompt="Extract the required fields from this image and return the output strictly following the provided JSON schema.") \
+            -> list[dict]:
         with open(file, "rb") as f:
             content = base64.b64encode(f.read()).decode("utf-8")
         required = [k for k, _ in schema.items() if _.required]
@@ -54,12 +58,11 @@ class ModelDeploymentClient(AzureHosted):
             content=[
                 ChatCompletionContentPartTextParam(
                     type='text',
-                    text="Extract the required fields from this image and return the output strictly following the provided JSON schema."),
+                    text=prompt),
                 ChatCompletionContentPartImageParam(
                     type="image_url",
                     image_url=ImageURL(
-                        # TODO extract mime
-                        url=f"data:image/jpeg;base64,{content}",
+                        url=f"data:{mime_of(file)};base64,{content}",
                         detail='auto'
                     )
                 )

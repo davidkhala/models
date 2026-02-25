@@ -3,6 +3,7 @@ from requests import Response, HTTPError as RawHTTPError
 
 from davidkhala.llm.api import GardenAPI, ChatAPI, EmbeddingAPI
 from davidkhala.llm.model.chat import ImagePrompt, ChoicesChat
+from davidkhala.llm.model.garden import TrialAvailable
 from davidkhala.llm.model.rerank import Reranker
 
 Prompt = str | ImagePrompt
@@ -33,7 +34,7 @@ class Console(Request):
         r = self.request(url, 'GET')
         return r
 
-class SiliconFlow(ChatAPI, ChoicesChat, Reranker, EmbeddingAPI, GardenAPI):
+class SiliconFlow(ChatAPI, ChoicesChat, Reranker, EmbeddingAPI, GardenAPI, TrialAvailable):
     @property
     def free_models(self) -> list[str]:
         """
