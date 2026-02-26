@@ -10,7 +10,8 @@ from davidkhala.llm.model import ModelAware
 
 
 class MessageProtocol(Protocol):
-    content: str | Any
+    content: str | list | Any | None
+    role: str
 
 
 class ChoiceProtocol(Protocol):
@@ -89,7 +90,6 @@ def messages_from(*user_prompt: Prompt) -> Iterable[MessageDict]:
                             {"type": "image_url", "image_url": {"url": i, 'detail': _.detail}} for i in _.image_url)
 
                     case FilePrompt():
-                        # TODO Document Prompt in Anthropic don't align with this structure.
                         if _.url:
                             message['content'].extend({"type": "file", "file": {
                                 "filename": filename_from(item), "file_data": item
@@ -125,12 +125,12 @@ class ChatAware(ABC, ModelAware):
         self.messages.extend(messages_from(*user_prompt))
         return self.messages
 
+    def for_next(self, message: MessageProtocol | MessageDict):
+        self.messages.append(message)
+
     def with_annotations(self, annotations: list[AnnotationDict]):
         # file should not be excluded from message thread. Just openrouter will skip parsing costs
-        self.messages.append({
-            "role": "assistant",
-            "annotations": annotations,
-        })
+        self.for_next(MessageDict(role="assistant", annotations=annotations))
 
 
 class ChoicesChat(ChatAware, ABC):
