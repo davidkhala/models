@@ -7,12 +7,12 @@ class BaseTest(unittest.TestCase):
     def setUp(self):
         self.api_key = os.getenv("API_KEY")
 
-
-class OpenAITest(BaseTest):
-    from davidkhala.llm.openai.minimax import Global
+from davidkhala.llm.openai.minimax import Global
+class GlobalTest(BaseTest):
     def setUp(self):
         super().setUp()
-        self._ = OpenAITest.Global(self.api_key)
+        self._ = Global(self.api_key)
+class OpenAITest(GlobalTest):
 
     @skipIf(os.environ.get('CI'), "paid model")
     def test_chat(self):
@@ -35,11 +35,7 @@ class OpenAITest(BaseTest):
             print(reason_dict)
 
 
-class AnthropicTest(BaseTest):
-    from davidkhala.llm.anthropic.minimax import Global
-    def setUp(self):
-        super().setUp()
-        self._ = AnthropicTest.Global(self.api_key)
+class AnthropicTest(GlobalTest):
 
     @skipIf(os.environ.get('CI'), "paid model")
     def test_chat(self):

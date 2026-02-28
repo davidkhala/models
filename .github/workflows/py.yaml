@@ -5,8 +5,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        version: [3.12, latest]
-        provider: [openrouter, siliconflow]
+        version: [ 3.12, latest ]
+        provider: [ openrouter, siliconflow ]
     environment: ${{matrix.provider}}
     env:
       API_KEY: ${{secrets.API_KEY}}
@@ -39,3 +39,16 @@ jobs:
           tests: py/tests
           extras: openrouter
           version: ${{matrix.version}}
+  minimax:
+    runs-on: ubuntu-latest
+    environment: minimax
+    env:
+      API_KEY: ${{secrets.API_KEY}}
+    steps:
+      - uses: actions/checkout@main
+      - uses: davidkhala/uv-buildpack@main
+        with:
+          working-directory: py
+          test-entry-point: pytest minimax_test.py
+          tests: py/tests
+          extras: minimax
