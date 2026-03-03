@@ -106,8 +106,8 @@ def messages_from(*user_prompt: Prompt) -> Iterable[MessageDict]:
 
 
 class ChatAware(ABC, ModelAware):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.messages: list[Any | MessageDict] = []
 
     def reset(self):
@@ -144,8 +144,8 @@ class ChoicesChat(ChatAware, ABC):
 
 
 class CompareChatAware(ChatAware, ABC):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._models: list[str] = []
 
     def as_chat(self, *models: str, sys_prompt: str = None):

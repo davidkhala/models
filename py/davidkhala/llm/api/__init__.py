@@ -1,16 +1,13 @@
 import datetime
 from abc import ABC
-from typing import TypedDict
 
 from davidkhala.utils.http_request import Request
+from davidkhala.utils.typed import IDDict
 
 from davidkhala.llm.model.chat import ChatAware, Prompt
 from davidkhala.llm.model.embed import EmbeddingAware
 from davidkhala.llm.model.garden import GardenAlike
 
-
-class IDDict(TypedDict):
-    id: str # TODO reuse from davidkhala.utils
 
 class API(Request):
     def __init__(self, api_key: str, base_url: str):
@@ -59,6 +56,6 @@ class EmbeddingAPI(API, EmbeddingAware):
 
 
 class GardenAPI(API, GardenAlike, ABC):
-    def list_models(self) -> list[IDDict] :
+    def list_models(self) -> list[IDDict]:
         response = self.request(f"{self.base_url}/models", "GET")
         return response['data']

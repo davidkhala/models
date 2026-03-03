@@ -25,13 +25,13 @@ class KimiTest(GlobalBase):
             pass
 
     def upload_one(self):
-        self.client.upload(Path(__file__).parent / "fixtures" / "bitcoin.pdf")
+        self.client.upload(Path(__file__).parent.parent / "fixtures" / "bitcoin.pdf")
 
     def test_file_upload(self):
         """Test uploading a file to Moonshot AI."""
 
         with self.assertRaises(BadRequestError) as e:
-            self.client.upload(Path(__file__).parent / "fixtures" / "empty.pdf")
+            self.client.upload(Path(__file__).parent.parent / "fixtures" / "empty.pdf")
         self.assertEqual(e.exception.message,
                          "Error code: 400 - {'error': {'message': 'text extract error: 没有解析出内容', 'type': 'invalid_request_error'}}")
 
@@ -44,7 +44,7 @@ class KimiTest(GlobalBase):
         self.assertIsInstance(files, list)
 
     def test_message(self):
-        message = self.client.message_of(Path(__file__).parent / "fixtures" / "bitcoin.pdf")
+        message = self.client.message_of(Path(__file__).parent.parent / "fixtures" / "bitcoin.pdf")
 
         j = json.loads(message['content'])
         self.assertTrue(j['content'])
