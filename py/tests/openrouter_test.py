@@ -37,6 +37,11 @@ class ChatTestCase(AppTestCase):
         self.openrouter.as_chat('openrouter/free', sys_prompt='You are a shiny girl today')
         r = self.openrouter.chat('Hello!')
         print(r)
+    def test_seed(self):
+        self.openrouter.as_chat("ibm-granite/granite-4.0-h-micro")
+        r = self.openrouter.chat('Hello!')
+        print(r)
+        self.assertEqual(r, "Hello! How can I assist you today?")
 
     @skipIf(os.environ.get('CI'), "paid model")
     def test_ibm(self):

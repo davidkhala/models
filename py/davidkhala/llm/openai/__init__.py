@@ -1,3 +1,4 @@
+from random import seed
 from typing import Literal
 
 from openai import OpenAI, AuthenticationError, PermissionDeniedError
@@ -37,11 +38,12 @@ class Client(ChoicesChat, EmbeddingAware, GardenAlike, Connectable):
         return [item.embedding for item in response.data]
 
     def chat_create(self, *user_prompt, **kwargs) -> ChatCompletion:
+        if hasattr(self, 'seed'):
+            kwargs['seed'] = self.seed
         return self.client.chat.completions.create(
             model=self.model,
             messages=self.messages_from(*user_prompt),
             n=self.n,
-            seed=self.seed,
             **kwargs
         )
 
