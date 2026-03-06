@@ -53,7 +53,8 @@ class OpenRouter(ChatAPI, EmbeddingAPI, GardenAPI, OpenRouterModel, TrialAvailab
         options: dict = {
             'plugins': [
                 Plugins.pdf(pdf_engine)
-            ]
+            ],
+            'seed': self.seed,
         }
         if self._models:
             options["models"] = self._models

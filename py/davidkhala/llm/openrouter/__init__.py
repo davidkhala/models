@@ -29,7 +29,8 @@ class Client(OpenRouterModel, EmbeddingAware, Connectable, TrialAvailable):
             model=self.model,
             models=self._models,
             messages=self.messages_from(*user_prompt),
-            plugins=plugins
+            plugins=plugins,
+            seed=self.seed,
         )
         return on_response(r, OpenRouterModel.n)[0]
 

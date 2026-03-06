@@ -16,6 +16,7 @@ class Client(ChoicesChat, EmbeddingAware, GardenAlike, Connectable):
         super().__init__()
         self.client: OpenAI = client
         self.encoding_format: Literal["float", "base64"] = "float"
+        self.seed = 1
 
     def connect(self):
         try:
@@ -40,6 +41,7 @@ class Client(ChoicesChat, EmbeddingAware, GardenAlike, Connectable):
             model=self.model,
             messages=self.messages_from(*user_prompt),
             n=self.n,
+            seed=self.seed,
             **kwargs
         )
 
