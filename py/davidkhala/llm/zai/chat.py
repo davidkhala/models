@@ -1,5 +1,5 @@
 from davidkhala.llm.model.chat import ChatAware, on_response
-from davidkhala.llm.zai import Client as BaseClient
+from davidkhala.llm.zai import GlobalClient as BaseClient
 
 
 class Client(ChatAware, BaseClient):
@@ -10,6 +10,5 @@ class Client(ChatAware, BaseClient):
             model=self.model,
             messages=self.messages_from(*user_prompt),
         )
-        print(response)
         # z.ai has no `n` support
         return on_response(response, Client.n)
