@@ -1,18 +1,15 @@
 from abc import ABC
 from typing import Literal
 
-from davidkhala.llm.model.chat import CompareChatAware
+from davidkhala.llm.model.chat import CompareChatAware, DeterministicChat
 from davidkhala.llm.model.garden import GardenAlike
 
 
-class OpenRouterModel(CompareChatAware, GardenAlike, ABC):
+class OpenRouterModel(CompareChatAware, GardenAlike, DeterministicChat, ABC):
     """
     openrouter has no `n` parameter support
     """
     n = 1  # only has one fake choice. Openrouter use models as pool for load-balance only
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.seed = 1 # random seed
 
 
 class Plugins:

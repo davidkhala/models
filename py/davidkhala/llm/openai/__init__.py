@@ -1,4 +1,3 @@
-from random import seed
 from typing import Literal
 
 from openai import OpenAI, AuthenticationError, PermissionDeniedError
@@ -6,18 +5,17 @@ from openai.types import Model
 from openai.types.chat import ChatCompletion
 
 from davidkhala.llm.model import Connectable
-from davidkhala.llm.model.chat import on_response, ChoicesChat
+from davidkhala.llm.model.chat import on_response, ChoicesChat, DeterministicChat
 from davidkhala.llm.model.embed import EmbeddingAware
 from davidkhala.llm.model.garden import GardenAlike
 
 
-class Client(ChoicesChat, EmbeddingAware, GardenAlike, Connectable):
+class Client(ChoicesChat, EmbeddingAware, DeterministicChat, GardenAlike, Connectable):
 
     def __init__(self, client: OpenAI):
         super().__init__()
         self.client: OpenAI = client
         self.encoding_format: Literal["float", "base64"] = "float"
-        self.seed = 1
 
     def connect(self):
         try:

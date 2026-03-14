@@ -19,4 +19,10 @@ coding helper
 
 Tool guide
 - [claude code](https://docs.z.ai/devpack/tool/claude)
-  
+
+## coding plan
+
+All plans support these MCP tools. No support for video generations
+- The Lite plan includes a total of 100 web searches, web readers and Zread, along with the 5-hour maximum prompt resource pool of the package for vision understanding.
+- The Pro plan includes a total of 1,000 web searches, web readers and Zread, along with the 5-hour maximum prompt resource pool of the package for vision understanding.
+- The Max plan includes a total of 4,000 web searches, web readers and Zread, along with the 5-hour maximum prompt resource pool of the package for vision understanding.

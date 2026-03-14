@@ -143,6 +143,12 @@ class ChoicesChat(ChatAware, ABC):
         self.n = 1
 
 
+class DeterministicChat:
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.seed = 1  # random seed
+
+
 class CompareChatAware(ChatAware, ABC):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

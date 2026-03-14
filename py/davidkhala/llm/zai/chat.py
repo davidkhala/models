@@ -2,7 +2,7 @@ from davidkhala.llm.model.chat import ChatAware, on_response
 from davidkhala.llm.zai import GlobalClient as BaseClient
 
 
-class Client(ChatAware, BaseClient):
+class GlobalClient(ChatAware, BaseClient):
     n = 1
 
     def chat(self, *user_prompt):
@@ -11,4 +11,5 @@ class Client(ChatAware, BaseClient):
             messages=self.messages_from(*user_prompt),
         )
         # z.ai has no `n` support
-        return on_response(response, Client.n)
+        # z.ai has no `seed` support. Knowing that SDK provides `seed` option, it does not guarantee determinism
+        return on_response(response, GlobalClient.n)[0]
