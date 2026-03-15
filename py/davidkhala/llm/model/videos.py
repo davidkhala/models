@@ -1,9 +1,7 @@
 from abc import ABC, abstractmethod
 
-from davidkhala.llm.model import ModelAware
 
-
-class VideoWare(ModelAware, ABC):
+class VideoAware(ABC):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.size: str = "1280x720"  # Video resolution

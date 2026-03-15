@@ -5,10 +5,10 @@ from zai import ZaiClient
 from zai.types.video import VideoResult
 
 import davidkhala.llm.zai
-from davidkhala.llm.model.videos import VideoWare
+from davidkhala.llm.model.videos import VideoAware
 
 
-class Client(VideoWare):
+class Client(VideoAware):
     def __init__(self, *args, **kwargs):
         self.client: ZaiClient = None
         kwargs.pop('glm_coding_plan', None) # No coding plan has video generate capability

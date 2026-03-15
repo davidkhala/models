@@ -12,9 +12,10 @@ class OpenAITestCase(unittest.TestCase):
 
     def test_connect(self):
         self.assertTrue(self.client.connect())
+        print(self.client.models)
 
     def test_chat(self):
-        self.client.as_chat()
+        self.client.as_chat("gpt-5.2")  # should be one of my Model Deployment
         print(self.client.chat("hello"))
 
 

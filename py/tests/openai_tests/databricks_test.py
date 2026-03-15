@@ -1,7 +1,10 @@
+import os
 import unittest
+from unittest import skipIf
+
+from openai import NotFoundError
 
 from davidkhala.llm.openai.databricks import Client
-from openai import NotFoundError
 
 
 class HotmailFreeEdition(unittest.TestCase):
@@ -19,6 +22,14 @@ class HotmailFreeEdition(unittest.TestCase):
 
     def test_chat(self):
         self.client.as_chat("databricks-gpt-oss-120b")
+        responses = self.client.chat("What is an LLM agent?")
+
+        for r in responses:
+            print(r)
+
+    @skipIf(not os.environ.get('CI'), "Not running inside a Docker environment")
+    def test_gpt(self):
+        self.client.as_chat("databricks-gpt-5-4")
         responses = self.client.chat("What is an LLM agent?")
 
         for r in responses:

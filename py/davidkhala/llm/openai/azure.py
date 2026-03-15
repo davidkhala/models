@@ -10,6 +10,7 @@ from openai.types.chat import (
     ChatCompletionUserMessageParam, ChatCompletionContentPartTextParam, ChatCompletionContentPartImageParam
 )
 from openai.types.chat.chat_completion_content_part_image_param import ImageURL
+from openai.types.responses import Response
 from openai.types.shared_params import ResponseFormatJSONSchema
 from openai.types.shared_params.response_format_json_schema import JSONSchema
 
@@ -88,6 +89,19 @@ class OpenAIClient(AzureHosted):
             base_url=f"https://{project}.openai.azure.com/openai/v1/",
             api_key=api_key,
         ))
+        self.instructions: str | None = None
 
-    def as_chat(self, model="gpt-oss-120b", sys_prompt: str = None):
-        super().as_chat(model, sys_prompt)
+    def as_chat(self, model: str | None, sys_prompt: str = None):
+        self.model = model
+        if sys_prompt is not None:
+            self.instructions = sys_prompt
+
+    def chat(self, *user_prompt, **kwargs) -> Response:
+        # TODO this is the new openai fashion
+        response: Response = self.client.responses.create(
+            model=self.model,
+            input=self.messages_from(*user_prompt),
+            instructions=self.instructions,
+            **kwargs
+        )
+        return response
