@@ -1,5 +1,5 @@
 from openai import OpenAI
-from davidkhala.llm.openai import Client as BaseClient
+from davidkhala.llm.openai.classic import Client as BaseClient
 
 
 class Client(BaseClient):
@@ -11,11 +11,11 @@ class Client(BaseClient):
             base_url=f"https://{o}.ai-gateway.cloud.databricks.com/mlflow/v1",
             api_key=token
         ))
-        del self.seed # databricks has no seed support
+        del self.seed  # databricks has no seed support
 
     def chat(self, *user_prompt, **kwargs):
         """Databricks always reasoning, and content is not of type str"""
-        contents:list[list[dict]] = super().chat(*user_prompt, **kwargs)
+        contents: list[list[dict]] = super().chat(*user_prompt, **kwargs)
 
         for content in contents:
             for block in content:

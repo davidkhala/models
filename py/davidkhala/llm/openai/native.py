@@ -1,8 +1,9 @@
 from typing import Literal
 
 from openai import OpenAI
+from openai.types.responses import ToolParam, WebSearchToolParam
 
-from davidkhala.llm.openai import Client
+from davidkhala.llm.openai.current import Client
 
 
 class NativeClient(Client):
@@ -12,13 +13,11 @@ class NativeClient(Client):
             base_url=base_url
         ))
 
-    def chat(self, *user_prompt, web_search: Literal["low", "medium", "high"] = None, **kwargs):
-        opts = {
-            **kwargs
-        }
+    def chat(self, user_prompt, *, web_search: Literal["low", "medium", "high"] = None):
+        tools: list[ToolParam] = []
         if web_search:
-            from openai.types.chat.completion_create_params import WebSearchOptions
-            opts['web_search_options'] = WebSearchOptions(search_context_size=web_search)
-        return super().chat(*user_prompt, **opts)
-
-
+            tools.append(WebSearchToolParam(
+                type="web_search",
+                search_context_size=web_search,
+            ))
+        return super().chat(user_prompt, tools=tools)

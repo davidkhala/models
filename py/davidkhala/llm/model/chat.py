@@ -129,6 +129,7 @@ class ChatAware(ABC, ModelAware):
         self.messages.append(message)
 
     def with_annotations(self, annotations: list[AnnotationDict]):
+        """In classic openai and [openrouter](https://openrouter.ai/docs/guides/overview/multimodal/pdfs#skip-parsing-costs)"""
         # file should not be excluded from message thread. Just openrouter will skip parsing costs
         self.for_next(MessageDict(role="assistant", annotations=annotations))
 

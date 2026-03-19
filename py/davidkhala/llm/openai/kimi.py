@@ -6,7 +6,7 @@ from openai.types import FileObject
 
 from davidkhala.llm.model.chat import MessageDict
 from davidkhala.llm.model.file import FileAware
-from davidkhala.llm.openai import Client as BaseClient
+from davidkhala.llm.openai.classic import Client as BaseClient
 from davidkhala.utils.syntax.format import mime_of
 
 

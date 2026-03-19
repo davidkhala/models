@@ -1,5 +1,6 @@
 from davidkhala.llm.model.chat import MessageDict
-from davidkhala.llm.openai import Client as BaseClient, OpenAI, on_response
+from davidkhala.llm.openai.classic import Client as BaseClient
+from davidkhala.llm.openai import OpenAI
 
 
 class Client(BaseClient):
