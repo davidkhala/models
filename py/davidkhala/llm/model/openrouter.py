@@ -1,15 +1,22 @@
-from abc import ABC
 from typing import Literal
 
-from davidkhala.llm.model.chat import CompareChatAware, DeterministicChat
-from davidkhala.llm.model.garden import GardenAlike
+from davidkhala.llm.model.chat import ChatAware
 
 
-class OpenRouterModel(CompareChatAware, GardenAlike, DeterministicChat, ABC):
-    """
-    openrouter has no `n` parameter support
-    """
-    n = 1  # only has one fake choice. Openrouter use models as pool for load-balance only
+class OpenRouterModel(ChatAware):
+    n = 1  # openrouter has no `n` parameter support, only has one fake choice. Openrouter use models as pool for load-balance only
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._models: list[str] = []
+
+    def as_chat(self, *models: str, sys_prompt: str = None):
+        # migrate from CompareChatAware # TODO, any other openrouter alter
+        if len(models) > 1:
+            self._models = list(models)
+            super().as_chat(None, sys_prompt)
+        elif len(models) == 1:
+            super().as_chat(models[0], sys_prompt)
 
 
 class Plugins:

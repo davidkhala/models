@@ -9,7 +9,7 @@ from davidkhala.llm.api.siliconflow import SiliconFlow
 
 class BaseTest(unittest.TestCase):
     def setUp(self):
-        api_key = os.environ.get('API_KEY') or 'sk-uqwpfglnfcvuynsnmdxefowawwzoaqqyjzsztbwgdlstmkdx'
+        api_key = os.environ.get('API_KEY')
         self._ = SiliconFlow(api_key)
 
 

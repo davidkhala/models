@@ -10,17 +10,16 @@ from openai.types.chat import (
     ChatCompletionUserMessageParam, ChatCompletionContentPartTextParam, ChatCompletionContentPartImageParam
 )
 from openai.types.chat.chat_completion_content_part_image_param import ImageURL
-from openai.types.responses import Response
 from openai.types.shared_params import ResponseFormatJSONSchema
 from openai.types.shared_params.response_format_json_schema import JSONSchema
 
 from davidkhala.llm.model.chat import on_response
-from davidkhala.llm.openai import Client
+from davidkhala.llm.openai.current import Client
 
 
 class AzureHosted(Client):
     def chat(self, *user_prompt, **kwargs):
-        if 'web_search_options' in kwargs:
+        if 'web_search' in kwargs:
             raise ValueError('Web search options not supported in any models of Azure AI Foundry')
         return super().chat(*user_prompt, **kwargs)
 
@@ -32,15 +31,16 @@ class ModelDeploymentClient(AzureHosted):
 
     def __init__(self, key, deployment):
         super().__init__(AzureOpenAI(
-            api_version="2024-12-01-preview",  # mandatory
+            api_version="2025-03-01-preview",  # mandatory
             azure_endpoint=f"https://{deployment}.cognitiveservices.azure.com/",
             api_key=key,
         ))
 
     def process(self, file: Path, schema: dict[str, FieldProperties],
                 *,
-                prompt="Extract the required fields from this image and return the output strictly following the provided JSON schema.") \
-            -> list[dict]:
+                prompt="Extract the required fields from this image and return the output strictly following the provided JSON schema.",
+                n=1,
+                ) -> list[dict]:
         with open(file, "rb") as f:
             content = base64.b64encode(f.read()).decode("utf-8")
         required = [k for k, _ in schema.items() if _.required]
@@ -76,9 +76,9 @@ class ModelDeploymentClient(AzureHosted):
                 type='json_schema',
                 json_schema=json_schema
             ),
-            n=self.n,
+            n=n,
         )
-        return [json.loads(_) for _ in on_response(response, self.n)]
+        return [json.loads(_) for _ in on_response(response, n)]
 
 
 @deprecated("Azure Open AI is deprecated. Please migrate to Microsoft Foundry")
@@ -89,19 +89,3 @@ class OpenAIClient(AzureHosted):
             base_url=f"https://{project}.openai.azure.com/openai/v1/",
             api_key=api_key,
         ))
-        self.instructions: str | None = None
-
-    def as_chat(self, model: str | None, sys_prompt: str = None):
-        self.model = model
-        if sys_prompt is not None:
-            self.instructions = sys_prompt
-
-    def chat(self, *user_prompt, **kwargs) -> Response:
-        # TODO this is the new openai fashion
-        response: Response = self.client.responses.create(
-            model=self.model,
-            input=self.messages_from(*user_prompt),
-            instructions=self.instructions,
-            **kwargs
-        )
-        return response

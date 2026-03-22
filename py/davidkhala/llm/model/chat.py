@@ -105,7 +105,7 @@ def messages_from(*user_prompt: Prompt) -> Iterable[MessageDict]:
         yield message
 
 
-class ChatAware(ABC, ModelAware):
+class ChatAware(ModelAware, ABC):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.messages: list[Any | MessageDict] = []
@@ -148,16 +148,3 @@ class DeterministicChat:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.seed = 1  # random seed
-
-
-class CompareChatAware(ChatAware, ABC):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self._models: list[str] = []
-
-    def as_chat(self, *models: str, sys_prompt: str = None):
-        if len(models) > 1:
-            self._models = list(models)
-            super().as_chat(None, sys_prompt)
-        elif len(models) == 1:
-            super().as_chat(models[0], sys_prompt)

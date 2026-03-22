@@ -26,6 +26,8 @@ class Client(EmbeddingAware, VideoAware, GardenAlike, Connectable):
     def list_models(self) -> list[Model]:
         return self.client.models.list().data
 
+    def as_chat(self, model: str | None, sys_prompt: str = None):...
+
     def encode(self, *_input: str) -> list[list[float]]:
         response = self.client.embeddings.create(
             model=self.model,

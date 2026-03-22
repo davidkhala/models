@@ -6,11 +6,11 @@ from requests import Response
 
 from davidkhala.llm.api import EmbeddingAPI, ChatAPI, GardenAPI
 from davidkhala.llm.model.garden import TrialAvailable
-from davidkhala.llm.model.chat import Prompt
+from davidkhala.llm.model.chat import Prompt, DeterministicChat
 from davidkhala.llm.model.openrouter import OpenRouterModel, Plugins
 
 
-class OpenRouter(ChatAPI, EmbeddingAPI, GardenAPI, OpenRouterModel, TrialAvailable):
+class OpenRouter(OpenRouterModel, ChatAPI, EmbeddingAPI, GardenAPI, DeterministicChat, TrialAvailable):
     def __init__(self, api_key: str, **kwargs):
         super().__init__(api_key=api_key, base_url='https://openrouter.ai/api')
 
@@ -22,9 +22,6 @@ class OpenRouter(ChatAPI, EmbeddingAPI, GardenAPI, OpenRouterModel, TrialAvailab
         self.retry = True
 
         def on_response(response: requests.Response):
-            """
-
-            """
             r = default_on_response(response)
             # openrouter special error on response.ok
             err = r.get('error')

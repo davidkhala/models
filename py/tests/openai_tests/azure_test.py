@@ -31,8 +31,7 @@ class ModelDeploymentTestCase(unittest.TestCase):
     def test_chat(self):
         self.client.as_chat("gpt-4o", "You are a helpful assistant.")
         response = self.client.chat("Don't reply me anything now.", "What is your model name?")
-        self.assertEqual(1, len(response))
-        print(response[0])
+        print(response.output)
 
     def test_embedding(self):
         self.client.as_embeddings("text-embedding-3-large")

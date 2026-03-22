@@ -11,18 +11,23 @@ class Client(BaseClient):
             base_url=f"https://{o}.ai-gateway.cloud.databricks.com/mlflow/v1",
             api_key=token
         ))
-        del self.seed  # databricks has no seed support
+        self.seed = None  # databricks has no seed support
 
-    def chat(self, *user_prompt, **kwargs):
+    def chat(self, *user_prompt, **kwargs) -> tuple[list[str], list[str]]:
         """Databricks always reasoning, and content is not of type str"""
-        contents: list[list[dict]] = super().chat(*user_prompt, **kwargs)
+        contents: list[list[dict] | str] = super().chat(*user_prompt, **kwargs)
 
+        response = []
+        reason = []
         for content in contents:
+            if type(content) == str:
+                response.append(content)
             for block in content:
-                match block['type']:
-                    case "text":
-                        yield block['text']
-                    case "reasoning":
-                        for s in block["summary"]:
-                            assert s['type'] == 'summary_text'
-                            yield s['text']
+                match block:
+                    case {"type": "text", "text": text}:
+                        response.append(text)
+                    case {"type": "reasoning", "summary": summary}:
+                        for s in summary:
+                            if s.get("type") == "summary_text":
+                                reason.append(s["text"])
+        return response, reason

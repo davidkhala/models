@@ -22,15 +22,14 @@ class HotmailFreeEdition(unittest.TestCase):
 
     def test_chat(self):
         self.client.as_chat("databricks-gpt-oss-120b")
-        responses = self.client.chat("What is an LLM agent?")
+        response, reason = self.client.chat("What is an LLM agent?")
 
-        for r in responses:
+        for r in response:
             print(r)
 
-    @skipIf(not os.environ.get('CI'), "Not running inside a Docker environment")
-    def test_gpt(self):
-        self.client.as_chat("databricks-gpt-5-4")
-        responses = self.client.chat("What is an LLM agent?")
+    def test_qwen(self):
+        self.client.as_chat("databricks-qwen3-next-80b-a3b-instruct")
+        responses, reason = self.client.chat("What is an LLM agent?")
 
         for r in responses:
             print(r)
