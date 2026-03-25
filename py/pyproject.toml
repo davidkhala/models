@@ -30,3 +30,4 @@ build-backend = "hatchling.build"
 dev = [
     "pytest"
 ]
+siliconflow = ["beautifulsoup4"]

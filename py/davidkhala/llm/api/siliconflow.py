@@ -1,3 +1,5 @@
+import json
+
 from davidkhala.utils.http_request import default_on_response, Request
 from requests import Response, HTTPError as RawHTTPError
 
@@ -26,47 +28,76 @@ class HTTPError(RawHTTPError):
     def message(self):
         return self.json['message']
 
-class Console(Request):
-    # TODO siliconflow cn use authenticator login
-    def price_of(self, model_id):
-        # TODO login is required
-        url = f"https://cloud.siliconflow.cn/biz-server/api/v1/playground/{model_id}/biz_info"
-        r = self.request(url, 'GET')
-        return r
 
-class SiliconFlow(ChatAPI, ChoicesChat, Reranker, EmbeddingAPI, GardenAPI, TrialAvailable):
+class CNConsole(Request, TrialAvailable):
+
+    def __init__(self, token: str):
+        super().__init__()
+        self.open()
+        self.session.cookies.set("__SF_auth.session-token", token)
+
     @property
     def free_models(self) -> list[str]:
-        """
-        Cannot be lively fetched by list_models
-        """
-        return [
-            # chat section
-            'THUDM/GLM-4.1V-9B-Thinking'
-            'THUDM/GLM-Z1-9B-0414'
-            'THUDM/GLM-4-9B-0414'
-            'THUDM/glm-4-9b-chat'
-            'Qwen/Qwen3-8B'
-            'Qwen/Qwen2.5-7B-Instruct'
-            'Qwen/Qwen2.5-Coder-7B-Instruct'
-            'internlm/internlm2_5-7b-chat'
-            'deepseek-ai/DeepSeek-R1-0528-Qwen3-8B',
-            'deepseek-ai/DeepSeek-R1-Distill-Qwen-7B',
-            # embedding and reranker
-            'BAAI/bge-m3'
-            'BAAI/bge-reranker-v2-m3'
-            'BAAI/bge-large-zh-v1.5'
-            'BAAI/bge-large-en-v1.5'
-            'netease-youdao/bce-reranker-base_v1'
-            'netease-youdao/bce-embedding-base_v1'
-            # Audio
-            'FunAudioLLM/SenseVoiceSmall'
-            # image
-            'Kwai-Kolors/Kolors'
-        ]
+        r = []
+        for model, name in self.models:
 
-    def __init__(self, api_key: str):
-        super().__init__(api_key, 'https://api.siliconflow.cn')
+            price_dict = self.price_of(model)
+            if sum(price_dict.values()) == 0.0:
+                r.append(name)
+        return r
+
+    @property
+    def models(self) -> list[tuple[int, str]]:
+
+        url = "https://siliconflow.cn/models"
+
+        def on_response(response: Response) -> str | None:
+            if response.ok:
+                if response.text: return response.text
+                return None
+            else:
+                return response.raise_for_status()
+
+        self.on_response = on_response
+        html = self.request(url, 'GET')
+        self.on_response = default_on_response
+
+        from bs4 import BeautifulSoup
+
+        soup = BeautifulSoup(html, "html.parser")
+
+        scripts = soup.find_all("script")
+        prefix = 'self.__next_f.push([1,"4'
+        for s in scripts:
+            if s.string and prefix in s.string:
+                trim = s.string[len(prefix) + 1:-3]
+
+                data = json.loads(trim.encode().decode('unicode_escape'))
+                return [(_['modelId'], _['modelName']) for _ in data[1][3]['data']]
+        assert False
+
+    def price_of(self, model_id):
+        url = f"https://cloud.siliconflow.cn/biz-server/api/v1/playground/{model_id}/biz_info"
+        response = self.request(url, 'GET')
+        functionCodes = ["input-tokens", "output-tokens", "image-cnt", "video-cnt", "cached-input-tokens", "utf8-bytes"]
+        result = {}
+        match response:
+            case {'code': 20000, 'message': 'Ok', 'status': True, 'data': data}:
+                groups = data["definitionPricingGroup"][0]["functionPricingGroups"]
+                for g in groups:
+                    code = g["functionInfo"]["functionCode"]
+                    if code in functionCodes:
+                        result[code] = float(g["pricingGroups"][0]["pricingInfo"]["unitPriceAmount"])
+                    else:
+                        assert False, f"new functionCode found: {code}"
+
+                return result
+
+
+class SiliconFlow(ChatAPI, ChoicesChat, Reranker, EmbeddingAPI, GardenAPI):
+
+    def __init__(self, api_key: str, base_url: str):
+        super().__init__(api_key, base_url)
 
         def on_response(response: Response):
             try:
@@ -98,3 +129,13 @@ class SiliconFlow(ChatAPI, ChoicesChat, Reranker, EmbeddingAPI, GardenAPI, Trial
         most_relevant_index = max(response['results'], key=lambda x: x['relevance_score'])['index']
 
         return documents[most_relevant_index], most_relevant_index
+
+
+class CN(SiliconFlow):
+    def __init__(self, api_key: str):
+        super().__init__(api_key, 'https://api.siliconflow.cn')
+
+
+class Global(SiliconFlow):
+    def __init__(self, api_key: str):
+        super().__init__(api_key, 'https://api.siliconflow.com')

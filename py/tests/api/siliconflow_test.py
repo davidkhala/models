@@ -4,24 +4,33 @@ from unittest import skipIf
 
 from requests import HTTPError
 
-from davidkhala.llm.api.siliconflow import SiliconFlow
+from davidkhala.llm.api.siliconflow import CN, CNConsole
 
 
 class BaseTest(unittest.TestCase):
     def setUp(self):
         api_key = os.environ.get('API_KEY')
-        self._ = SiliconFlow(api_key)
+        self._ = CN(api_key)
 
 
 class ModelsTestCase(BaseTest):
     def test_models(self):
         _models = self._.list_models()
         print(_models)
+
+
+class HackModelTestCase(unittest.TestCase):
     def test_hack_free_models(self):
-        # https://cloud.siliconflow.cn/biz-server/api/v1/playground/17885302824/biz_info
         model_id = "17885302824"
-        # TODO WIP
-        ...
+        token = 'eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2Q0JDLUhTNTEyIiwia2lkIjoieUtkdXFTY19KZ2h0RGQwb01hclFFVWtMdWxPcEJGcnN4MDRmTzZnbElhaEZjQUxHYUoxZWlZMDlZbHZPU0VMVmk0NVg1VnVIUFFWMW1tTnJWTnpmSVEifQ..Q7u0C-BpCxGqaCkrhsPemQ.NNpkQkmTT0gGCjjePISLbb7afGAkBdApHcFLup3p7wGCtmzQcpROskJwFuj3ky2khW7D9UrVHrBYSn_KOOeKko8e41DQVHmsYalOSYIRyNwc23R_mw755y-HRS7BHM35g6GVbnFjOwMV3eo49BXspw99ob_b9-wQq0sIdp9CEZ2a00Qen1ELdE3mMcdnCJ3qunelpcHXXaQPHUGegFJQL1vruHHcr8nDAiHwJewYuiLIdJs5vH-kem25pXWzNdms.bc51TcW6t4w2qjvHlKfYxAl7eTAFpZEKLMp-JiPDbVU'
+        console = CNConsole(token)
+
+        r = console.price_of(model_id)
+        self.assertEqual(r["input-tokens"], 0.0)
+        self.assertEqual(r["output-tokens"], 0.0)
+        models = console.models
+        self.assertEqual(len(models), 108)
+        print(console.free_models)
 
 
 class ChatTestCase(BaseTest):
