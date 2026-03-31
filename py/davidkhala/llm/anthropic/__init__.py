@@ -1,7 +1,7 @@
 from anthropic import Anthropic, __version__
 from anthropic.types import Message
 
-from davidkhala.llm.model.chat import ChatAware, Prompt, MessageDict
+from davidkhala.llm.model.chat import ChatAware, Prompt, Message
 from davidkhala.llm.model.file import FileAware
 
 version = __version__
@@ -23,7 +23,7 @@ class Client(ChatAware, FileAware):
             messages=self.messages_from(*user_prompt),
             max_tokens=self.max_tokens,  # required
         )
-        self.messages.append(MessageDict(content=r.content, role=r.role))
+        self.messages.append(Message(content=r.content, role=r.role).as_dict())
         return [{'text': _.text, 'citations': _.citations} for _ in r.content if _.type == 'text']
 
     def as_chat(self, model: str | None, sys_prompt: str = None):

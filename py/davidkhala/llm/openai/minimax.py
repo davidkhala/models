@@ -1,4 +1,4 @@
-from davidkhala.llm.model.chat import MessageDict
+from davidkhala.llm.model.chat import Message
 from davidkhala.llm.openai.classic import Client as BaseClient
 from davidkhala.llm.openai import OpenAI
 
@@ -13,7 +13,7 @@ class Client(BaseClient):
         assert len(response.choices) == Client.n, "minimax does not support n"
         message = response.choices[0].message
 
-        self.for_next(MessageDict(content=message.content, role=message.role))
+        self.for_next(Message(content=message.content, role=message.role))
 
         return message.content, message.reasoning_details  # reasoning_details is hidden field of minimax
 

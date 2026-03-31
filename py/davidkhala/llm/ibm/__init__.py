@@ -1,16 +1,15 @@
-from ibm_watsonx_ai import APIClient
-from ibm_watsonx_ai import Credentials
+from ibm_watsonx_ai import APIClient, Credentials
 from ibm_watsonx_ai.foundation_models import ModelInference
 
-from davidkhala.llm.model.chat import ChatAware
+from davidkhala.llm.model.chat import ChatAware, on_response
 
 
 class Client(ChatAware):
-    def __init__(self, project_id, *, base_url: str, api_key: str):
+    def __init__(self, project_id, *, region: str, api_key: str):
         super().__init__()
         self.client = APIClient(Credentials(
-            url = base_url,
-            api_key = api_key
+            url=f"https://{region}.ml.cloud.ibm.com",
+            api_key=api_key
         ))
         self.project_id = project_id
 
@@ -21,9 +20,11 @@ class Client(ChatAware):
             api_client=self.client,
             project_id=self.project_id,
         )
-    def chat(self, *messages:str):
+
+    def chat(self, *messages: str):
         # TODO test cover
-        return self.handler.chat(messages=self.messages_from(messages))
+        response = self.handler.chat(messages=self.messages_from(*messages))
 
-
-
+        # TODO API alike
+        # TODO use pydantic to unified dict and object
+        return response['choices']

@@ -1,12 +1,16 @@
 from abc import abstractmethod, ABC
-from pathlib import Path
-from typing import Protocol, Any, Iterable, TypedDict, Literal, NotRequired
+from typing import Protocol, Any, TypeAlias
 
-from davidkhala.utils.syntax.format import Base64, mime_of
-from davidkhala.utils.syntax.url import filename_from
 from pydantic import BaseModel
 
 from davidkhala.llm.model import ModelAware
+from davidkhala.llm.model.prompt import TextContentPart
+from davidkhala.llm.model.prompt.annotation import ContentPart as AnnotationContent
+from davidkhala.llm.model.prompt.file import ContentPart as FileContent
+from davidkhala.llm.model.prompt.image import ContentPart as ImageContent
+from davidkhala.llm.model.prompt.param import Prompt, Image, File
+
+ContentPart = FileContent | ImageContent | TextContentPart | AnnotationContent
 
 
 class MessageProtocol(Protocol):
@@ -22,23 +26,6 @@ class ChoicesAware(Protocol):
     choices: list[ChoiceProtocol]
 
 
-class MultimodalPrompt(BaseModel):
-    text: str
-
-
-class ImagePrompt(MultimodalPrompt):
-    image_url: list[str]
-    detail: Literal['auto', 'low', 'high'] | None = 'auto'  # Image detail level for vision models
-
-
-class FilePrompt(MultimodalPrompt):
-    url: list[str] | None = None
-    path: list[Path] | None = None
-
-
-Prompt = str | ImagePrompt | FilePrompt
-
-
 def on_response(response: ChoicesAware, n: int | None):
     contents = [choice.message.content for choice in response.choices]
     if n:
@@ -46,69 +33,38 @@ def on_response(response: ChoicesAware, n: int | None):
     return contents
 
 
-class ImageContentPart(TypedDict):
-    type: Literal['image_url']
-    image_url: NotRequired[dict]
+MessageDict: TypeAlias = dict
 
 
-class TextContentPart(TypedDict):
-    type: Literal['text']
-    text: str
-
-
-ContentPart = TextContentPart | ImageContentPart
-
-
-class FileAnnotation(TypedDict):
-    hash: str
-    name: str | None
-    content: list[ContentPart]
-
-
-class AnnotationDict(TypedDict):
-    type: Literal['file']
-    file: FileAnnotation
-
-
-class MessageDict(TypedDict):
-    content: NotRequired[str | list]
+class Message(BaseModel):
+    content: str | list[ContentPart] = []
     role: str
-    annotations: NotRequired[list[AnnotationDict]]
+    annotations: list[AnnotationContent] | None = None
+
+    def as_dict(self) -> MessageDict:
+        return self.model_dump()
+
+    @staticmethod
+    def from_dict(data: MessageDict):
+        return Message.model_validate(data)
 
 
-def messages_from(*user_prompt: Prompt) -> Iterable[MessageDict]:
+def message_from(*user_prompt: Prompt) -> Message:
+    message = Message(role='user')
     for _ in user_prompt:
-        message = MessageDict(role='user')
         match _:
             case str():
-                message['content'] = _
-            case MultimodalPrompt():
-                message['content'] = [{"type": "text", "text": _.text}]
-                match _:
-                    case ImagePrompt():
-                        message['content'].extend(
-                            {"type": "image_url", "image_url": {"url": i, 'detail': _.detail}} for i in _.image_url)
+                message.content.append(TextContentPart(text=_))
+            case Image() | File():
+                message.content.append(_.expand())
 
-                    case FilePrompt():
-                        if _.url:
-                            message['content'].extend({"type": "file", "file": {
-                                "filename": filename_from(item), "file_data": item
-                            }} for item in _.url)
-
-                        if _.path:
-                            for item in _.path:
-                                message['content'].append({"type": "file", "file": {
-                                    "filename": item.name,
-                                    "file_data": f"data:{mime_of(item)};base64,{Base64.encode_file(item)}"
-                                }})
-
-        yield message
+    return message
 
 
 class ChatAware(ModelAware, ABC):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.messages: list[Any | MessageDict] = []
+        self.messages: list[dict | MessageDict] = []
 
     def reset(self):
         self.messages = []
@@ -116,22 +72,27 @@ class ChatAware(ModelAware, ABC):
     def as_chat(self, model: str | None, sys_prompt: str = None):
         self.model = model
         if sys_prompt is not None:
-            self.messages = [MessageDict(role='system', content=sys_prompt)]
+            self.messages = [Message(role='system', content=sys_prompt).as_dict()]
 
     @abstractmethod
-    def chat(self, *user_prompt, **kwargs): ...
+    def chat(self, *user_prompt, **kwargs):
+        ...
 
     def messages_from(self, *user_prompt: Prompt):
-        self.messages.extend(messages_from(*user_prompt))
+        self.messages.append(message_from(*user_prompt).as_dict())
         return self.messages
 
-    def for_next(self, message: MessageProtocol | MessageDict):
-        self.messages.append(message)
+    def for_next(self, message: Message | MessageDict):
+        match message:
+            case Message():
+                self.messages.append(message.as_dict())
+            case dict():
+                self.messages.append(message)
 
-    def with_annotations(self, annotations: list[AnnotationDict]):
+    def with_annotations(self, annotations: list[AnnotationContent]):
         """In classic openai and [openrouter](https://openrouter.ai/docs/guides/overview/multimodal/pdfs#skip-parsing-costs)"""
         # file should not be excluded from message thread. Just openrouter will skip parsing costs
-        self.for_next(MessageDict(role="assistant", annotations=annotations))
+        self.for_next(Message(role="assistant", annotations=annotations).as_dict())
 
 
 class ChoicesChat(ChatAware, ABC):

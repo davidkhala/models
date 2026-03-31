@@ -1,6 +1,4 @@
-import os
 import unittest
-from unittest import skipIf
 
 from openai import NotFoundError
 

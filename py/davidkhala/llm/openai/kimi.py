@@ -4,7 +4,7 @@ from typing import Literal
 from openai import OpenAI
 from openai.types import FileObject
 
-from davidkhala.llm.model.chat import MessageDict
+from davidkhala.llm.model.chat import Message
 from davidkhala.llm.model.file import FileAware
 from davidkhala.llm.openai.classic import Client as BaseClient
 from davidkhala.utils.syntax.format import mime_of
@@ -39,7 +39,7 @@ class Client(BaseClient, FileAware):
     def files_delete(self, file_id: str):
         self.client.files.delete(file_id=file_id)
 
-    def message_of(self, file: Path) -> MessageDict:
+    def message_of(self, file: Path) -> Message:
         file_id = self.upload(file).id
         return {
             'role': 'system',
