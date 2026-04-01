@@ -5,7 +5,7 @@ from davidkhala.llm.ibm import Client
 
 class Watsonx(unittest.TestCase):
     def setUp(self):
-        project = os.getenv("PROJECT") or 'ed4ce828-ed18-46a4-be4a-ca44dae7860d'
+        project = os.getenv("PROJECT")
         region = 'ca-tor'
         api_key = os.getenv("API_KEY")
         self.client = Client(project, region=region, api_key=api_key)

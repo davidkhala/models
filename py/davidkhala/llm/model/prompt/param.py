@@ -1,8 +1,10 @@
 from pathlib import Path
 from typing import Literal
 
+from pydantic import BaseModel
 
-class Image:
+
+class Image(BaseModel):
     image_url: str
     detail: Literal['auto', 'low', 'high'] = 'auto'  # Image detail level for vision models
 
@@ -12,7 +14,7 @@ class Image:
         return ContentPart(image_url=URL(url=self.image_url, detail=self.detail))
 
 
-class File:
+class File(BaseModel):
     url: str | None = None
     path: Path | None = None
 

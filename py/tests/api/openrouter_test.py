@@ -14,7 +14,7 @@ class BaseTestCase(unittest.TestCase):
 
 
 class ChatTestCase(BaseTestCase):
-    from davidkhala.llm.model.chat import FilePrompt
+    from davidkhala.llm.model.prompt.param import File as FilePrompt
     def test_chat(self):
         self.openrouter.as_chat("openrouter/free")
         r = self.openrouter.chat('who am I?')
@@ -22,29 +22,28 @@ class ChatTestCase(BaseTestCase):
 
     def test_url_pdf(self):
         self.openrouter.as_chat('openrouter/free')
-        r = self.openrouter.chat(ChatTestCase.FilePrompt(
-            text='Summerize this pdf',
-            url=['https://bitcoin.org/bitcoin.pdf']
+        r = self.openrouter.chat('Summerize this pdf', ChatTestCase.FilePrompt(
+            url='https://bitcoin.org/bitcoin.pdf'
         ))
         print(r)
 
     def test_local_pdf(self):
         self.openrouter.as_chat('openrouter/free')
-        self.openrouter.chat(ChatTestCase.FilePrompt(
-            text='Read this pdf',
-            url=['https://bitcoin.org/bitcoin.pdf'],
-            path=[resolve(__file__, '../../fixtures/empty.pdf')]
-        ))
+        self.openrouter.chat(
+            'Read this pdf',
+            ChatTestCase.FilePrompt(url='https://bitcoin.org/bitcoin.pdf'),
+            ChatTestCase.FilePrompt(path=resolve(__file__, '../../fixtures/empty.pdf'))
+        )
         r2 = self.openrouter.chat('Learn from the annotations. If any, tell me what is first annotation')
         self.assertTrue("don't" in r2 or 'not' in r2, "annotations is transparent")
 
     def test_mix_pdf(self):
         self.openrouter.as_chat('openrouter/free')
-        r1 = self.openrouter.chat(ChatTestCase.FilePrompt(
-            text='Summerize these 2 pdf',
-            url=['https://bitcoin.org/bitcoin.pdf'],
-            path=[resolve(__file__, '../../fixtures/empty.pdf')]
-        ))
+        r1 = self.openrouter.chat('Summerize these 2 pdf',
+                                  ChatTestCase.FilePrompt(url='https://bitcoin.org/bitcoin.pdf'),
+                                  ChatTestCase.FilePrompt(path=resolve(__file__, '../../fixtures/empty.pdf'))
+                                  )
+
         print(self.openrouter.messages)
         print(r1)
 

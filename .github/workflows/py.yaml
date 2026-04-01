@@ -65,3 +65,17 @@ jobs:
           test-entry-point: pytest zai_test.py
           tests: py/tests
           extras: zai
+  ibm:
+    runs-on: ubuntu-latest
+    environment: ibm
+    env:
+      PROJECT: ${{vars.PROJECT}}
+      API_KEY: ${{secrets.API_KEY}}
+    steps:
+      - uses: actions/checkout@main
+      - uses: davidkhala/uv-buildpack@main
+        with:
+          working-directory: py
+          test-entry-point: pytest ibm_test.py
+          tests: py/tests
+          extras: ibm
