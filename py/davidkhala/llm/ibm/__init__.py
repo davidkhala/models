@@ -1,10 +1,12 @@
 from ibm_watsonx_ai import APIClient, Credentials
 from ibm_watsonx_ai.foundation_models import ModelInference
+from ibm_watsonx_ai.foundation_models.schema import TextChatParameters
 
-from davidkhala.llm.model.chat import ChatAware, on_response
+from davidkhala.llm.model.chat import ChoicesChat, DeterministicChat, ChoicesAware
+from davidkhala.llm.model.prompt.param import Prompt
 
 
-class Client(ChatAware):
+class Client(ChoicesChat, DeterministicChat):
     def __init__(self, project_id, *, region: str, api_key: str):
         super().__init__()
         self.client = APIClient(Credentials(
@@ -21,10 +23,12 @@ class Client(ChatAware):
             project_id=self.project_id,
         )
 
-    def chat(self, *messages: str):
-        # TODO test cover
-        response = self.handler.chat(messages=self.messages_from(*messages))
-
-        # TODO API alike
-        # TODO use pydantic to unified dict and object
-        return response['choices']
+    def chat(self, *user_prompt: Prompt):
+        response: dict = self.handler.chat(
+            messages=self.messages_from(*user_prompt),
+            params=TextChatParameters(
+                seed=self.seed,
+                n=self.n
+            )
+        )
+        return ChoicesAware.model_validate(response)

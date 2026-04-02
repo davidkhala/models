@@ -4,13 +4,12 @@ from davidkhala.llm.openai import OpenAI
 
 
 class Client(BaseClient):
-    n = 1  # minimax does not support n
 
     def chat(self, *user_prompt, **kwargs) -> tuple[str, list[dict]]:
         kwargs['extra_body'] = {'reasoning_split': True}
         response = super().chat_create(*user_prompt, **kwargs)
 
-        assert len(response.choices) == Client.n, "minimax does not support n"
+        assert len(response.choices) == 1, "minimax does not support n"
         message = response.choices[0].message
 
         self.for_next(Message(content=message.content, role=message.role))

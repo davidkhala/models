@@ -2,26 +2,19 @@ import base64
 import json
 from pathlib import Path
 
-from davidkhala.utils.syntax.compat import deprecated
-from davidkhala.utils.syntax.format import mime_of
 from openai import OpenAI
 from openai.lib.azure import AzureOpenAI
-from openai.types.chat import (
-    ChatCompletionUserMessageParam, ChatCompletionContentPartTextParam, ChatCompletionContentPartImageParam
-)
-from openai.types.chat.chat_completion_content_part_image_param import ImageURL
-from openai.types.shared_params import ResponseFormatJSONSchema
-from openai.types.shared_params.response_format_json_schema import JSONSchema
+from openai.types.responses import ResponseTextConfigParam, ResponseFormatTextJSONSchemaConfigParam, \
+    EasyInputMessageParam, ResponseInputTextParam, ResponseInputFileParam
 
-from davidkhala.llm.model.chat import on_response
 from davidkhala.llm.openai.current import Client
 
 
 class AzureHosted(Client):
-    def chat(self, *user_prompt, **kwargs):
+    def chat(self, user_prompt, **kwargs):
         if 'web_search' in kwargs:
             raise ValueError('Web search options not supported in any models of Azure AI Foundry')
-        return super().chat(*user_prompt, **kwargs)
+        return super().chat(user_prompt, **kwargs)
 
 
 from davidkhala.ml.ocr.model import FieldProperties
@@ -38,50 +31,39 @@ class ModelDeploymentClient(AzureHosted):
 
     def process(self, file: Path, schema: dict[str, FieldProperties],
                 *,
-                prompt="Extract the required fields from this image and return the output strictly following the provided JSON schema.",
-                n=1,
+                prompt="Extract the required fields from this file and return the output strictly following the provided JSON schema.",
                 ) -> list[dict]:
         with open(file, "rb") as f:
             content = base64.b64encode(f.read()).decode("utf-8")
         required = [k for k, _ in schema.items() if _.required]
         properties = {k: {'type': v.type} for k, v in schema.items()}
 
-        json_schema = JSONSchema(
-            name='-',
+        self.messages.append(EasyInputMessageParam(
+            role='user',
+            content=[
+                ResponseInputTextParam(
+                    type='input_text',
+                    text=prompt),
+                ResponseInputFileParam(
+                    type="input_file",
+                    file_data=content,
+                    filename=file.name,
+                )
+            ]
+        ))
+        json_schema = ResponseFormatTextJSONSchemaConfigParam(
+            name='-', type="json_schema",
             schema={"type": "object",
                     "properties": properties,
                     "required": required,
                     },
         )
-
-        self.messages.append(ChatCompletionUserMessageParam(
-            role='user',
-            content=[
-                ChatCompletionContentPartTextParam(
-                    type='text',
-                    text=prompt),
-                ChatCompletionContentPartImageParam(
-                    type="image_url",
-                    image_url=ImageURL(
-                        url=f"data:{mime_of(file)};base64,{content}",
-                        detail='auto'
-                    )
-                )
-            ]
-        ))
-        response = self.client.chat.completions.create(
-            model=self.model,
-            messages=self.messages,
-            response_format=ResponseFormatJSONSchema(
-                type='json_schema',
-                json_schema=json_schema
-            ),
-            n=n,
+        response = self.chat(
+            text=ResponseTextConfigParam(format=json_schema)
         )
-        return [json.loads(_) for _ in on_response(response, n)]
+        return json.loads(response)
 
 
-@deprecated("Azure Open AI is deprecated. Please migrate to Microsoft Foundry")
 class OpenAIClient(AzureHosted):
 
     def __init__(self, api_key, project):

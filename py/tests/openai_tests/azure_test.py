@@ -18,7 +18,6 @@ class OpenAITestCase(unittest.TestCase):
         self.client.as_chat("gpt-5.2")  # should be one of my Model Deployment
         print(self.client.chat("hello"))
 
-
 class ModelDeploymentTestCase(unittest.TestCase):
     def setUp(self):
         key = os.environ.get("DEPLOYMENT_KEY")
@@ -29,9 +28,12 @@ class ModelDeploymentTestCase(unittest.TestCase):
         self.assertTrue(self.client.connect())
 
     def test_chat(self):
-        self.client.as_chat("gpt-4o", "You are a helpful assistant.")
-        response = self.client.chat("Don't reply me anything now.", "What is your model name?")
-        print(response.output)
+        self.client.as_chat("gpt-5.2", "You are a helpful assistant.")
+        response = self.client.chat("Don't reply me anything now." )
+        print(response.output_text)
+        print('----')
+        response = self.client.chat("how many questions I have asked you in this conversation?")
+        print(response.output_text)
 
     def test_embedding(self):
         self.client.as_embeddings("text-embedding-3-large")
@@ -49,7 +51,7 @@ class ModelDeploymentTestCase(unittest.TestCase):
             'Credits Earned': FieldProperties(),
         }
         self.client.as_chat("gpt-4o",
-                            "You are a professional OCR parser. Produce the output strictly according to the JSON schema")
+                            "You are a professional OCR parser.")
         r = self.client.process(file, schema)
         print(r)
 

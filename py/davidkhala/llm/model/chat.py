@@ -1,45 +1,26 @@
 from abc import abstractmethod, ABC
-from typing import Protocol, Any, TypeAlias
+from typing import Any, TypeAlias
 
 from pydantic import BaseModel
 
 from davidkhala.llm.model import ModelAware
 from davidkhala.llm.model.prompt import TextContentPart
-from davidkhala.llm.model.prompt.annotation import ContentPart as AnnotationContent
 from davidkhala.llm.model.prompt.file import ContentPart as FileContent
 from davidkhala.llm.model.prompt.image import ContentPart as ImageContent
 from davidkhala.llm.model.prompt.param import Prompt, Image, File
 
-ContentPart = FileContent | ImageContent | TextContentPart | AnnotationContent
-
-
-class MessageProtocol(Protocol):
-    content: str | list | Any | None
-    role: str
-
-
-class ChoiceProtocol(Protocol):
-    message: MessageProtocol
-
-
-class ChoicesAware(Protocol):
-    choices: list[ChoiceProtocol]
-
-
-def on_response(response: ChoicesAware, n: int | None):
-    contents = [choice.message.content for choice in response.choices]
-    if n:
-        assert len(contents) == n, f"expected {n} choices, but got {len(contents)}"
-    return contents
-
+ContentPart = FileContent | ImageContent | TextContentPart
 
 MessageDict: TypeAlias = dict
 
 
 class Message(BaseModel):
-    content: str | list[ContentPart] = []
+    content: str | list[ContentPart | Any] = []
     role: str
-    annotations: list[AnnotationContent] | None = None
+    annotations: list | None = None
+    """
+    @deprecated, annotations has been moved as an item in content list
+    """
 
     def as_dict(self) -> MessageDict:
         return self.model_dump()
@@ -47,18 +28,6 @@ class Message(BaseModel):
     @staticmethod
     def from_dict(data: MessageDict):
         return Message.model_validate(data)
-
-
-def message_from(*user_prompt: Prompt) -> Message:
-    message = Message(role='user')
-    for _ in user_prompt:
-        match _:
-            case str():
-                message.content.append(TextContentPart(text=_))
-            case Image() | File():
-                message.content.append(_.expand())
-
-    return message
 
 
 class ChatAware(ModelAware, ABC):
@@ -79,7 +48,21 @@ class ChatAware(ModelAware, ABC):
         ...
 
     def messages_from(self, *user_prompt: Prompt):
-        self.messages.append(message_from(*user_prompt).as_dict())
+        content = []
+        for _ in user_prompt:
+            match _:
+                case str():
+                    content.append(TextContentPart(text=_))
+                case Image():
+                    from davidkhala.llm.model.prompt.image import URL, ContentPart
+
+                    content.append(ContentPart(image_url=URL(url=_.image_url, detail=_.detail)))
+                case File():
+                    from davidkhala.llm.model.prompt.file import ContentPart, File as _File
+
+                    content.append(ContentPart(file=_File(filename=_.filename, file_data=_.file_data)))
+
+        self.messages.append(Message(role='user', content=content).as_dict())
         return self.messages
 
     def for_next(self, message: Message | MessageDict):
@@ -89,10 +72,13 @@ class ChatAware(ModelAware, ABC):
             case dict():
                 self.messages.append(message)
 
-    def with_annotations(self, annotations: list[AnnotationContent]):
-        """In classic openai and [openrouter](https://openrouter.ai/docs/guides/overview/multimodal/pdfs#skip-parsing-costs)"""
-        # file should not be excluded from message thread. Just openrouter will skip parsing costs
-        self.for_next(Message(role="assistant", annotations=annotations).as_dict())
+
+class ChoiceModel(BaseModel):
+    message: Message
+
+
+class ChoicesAware(BaseModel):
+    choices: list[ChoiceModel]
 
 
 class ChoicesChat(ChatAware, ABC):
@@ -103,6 +89,11 @@ class ChoicesChat(ChatAware, ABC):
     def reset(self):
         super().reset()
         self.n = 1
+
+    def on_response(self, response) -> list:
+        contents = [choice.message.content for choice in response.choices]
+        assert len(contents) == self.n, f"expected {self.n} choices, but got {len(contents)}"
+        return contents
 
 
 class DeterministicChat:

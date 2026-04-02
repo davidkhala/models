@@ -4,11 +4,12 @@ from davidkhala.utils.http_request import default_on_response, Request
 from requests import Response, HTTPError as RawHTTPError
 
 from davidkhala.llm.api import GardenAPI, ChatAPI, EmbeddingAPI
-from davidkhala.llm.model.chat import ImagePrompt, ChoicesChat
+from davidkhala.llm.model.chat import  ChoicesChat
+from davidkhala.llm.model.prompt.param import Image
 from davidkhala.llm.model.garden import TrialAvailable
 from davidkhala.llm.model.rerank import Reranker
 
-Prompt = str | ImagePrompt
+Prompt = str | Image
 
 
 class HTTPError(RawHTTPError):

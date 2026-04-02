@@ -1,10 +1,29 @@
-from typing import Literal
+from pydantic import BaseModel
+from typing_extensions import Literal
 
-from davidkhala.llm.model.chat import ChatAware
+from davidkhala.llm.model.chat import ChatAware, Message
+from davidkhala.llm.model.prompt import TextContentPart
+from davidkhala.llm.model.prompt.image import ContentPart as ImageContentPart
+
+
+class FileAnnotation(BaseModel):
+    hash: str
+    name: str | None
+    content: list[TextContentPart | ImageContentPart]
+
+
+class Annotation(BaseModel):
+    """
+    model of "choices[0].message.annotations[0]"
+    """
+    type: Literal['file'] = 'file'
+    file: FileAnnotation
 
 
 class OpenRouterModel(ChatAware):
-    n = 1  # openrouter has no `n` parameter support, only has one fake choice. Openrouter use models as pool for load-balance only
+    """
+    openrouter has no `n` parameter support, only has one fake choice. Openrouter use models as pool for load-balance only
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -17,6 +36,14 @@ class OpenRouterModel(ChatAware):
             super().as_chat(None, sys_prompt)
         elif len(models) == 1:
             super().as_chat(models[0], sys_prompt)
+
+    def with_annotations(self, annotations: list[Annotation]):
+        """
+        [openrouter](https://openrouter.ai/docs/guides/overview/multimodal/pdfs#skip-parsing-costs)
+        Please note even if your messages contain annotations, file should not be excluded from messages.
+        It is simply for skip parsing costs only
+        """
+        self.messages.append(Message(role="assistant", annotations=annotations).as_dict())
 
 
 class Plugins:

@@ -61,8 +61,8 @@ class OpenRouter(OpenRouterModel, ChatAPI, EmbeddingAPI, GardenAPI, Deterministi
         r = super().chat(*user_prompt, **options)
 
         data, _a = r['data'], r['annotations']
-        assert len(data) == OpenRouter.n
-        assert len(_a) <= OpenRouter.n
+        assert len(data) == 1
+        assert len(_a) <= 1
         if _a:
             self.with_annotations(_a[0])
         if self._models:

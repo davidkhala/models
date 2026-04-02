@@ -1,6 +1,6 @@
 from typing import Literal
 
-from openai import OpenAI, AuthenticationError, PermissionDeniedError, HttpxBinaryResponseContent
+from openai import OpenAI, HttpxBinaryResponseContent, AuthenticationError, PermissionDeniedError
 from openai.types import Model
 
 from davidkhala.llm.model import Connectable
@@ -20,13 +20,14 @@ class Client(EmbeddingAware, VideoAware, GardenAlike, Connectable):
         try:
             self.list_models()
             return True
-        except AuthenticationError | PermissionDeniedError:
+        except (AuthenticationError, PermissionDeniedError):
             return False
 
     def list_models(self) -> list[Model]:
         return self.client.models.list().data
 
-    def as_chat(self, model: str | None, sys_prompt: str = None):...
+    def as_chat(self, model: str | None, sys_prompt: str = None):
+        ...
 
     def encode(self, *_input: str) -> list[list[float]]:
         response = self.client.embeddings.create(

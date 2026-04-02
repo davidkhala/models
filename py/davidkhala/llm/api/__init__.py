@@ -1,10 +1,9 @@
-import datetime
 from abc import ABC
 
 from davidkhala.utils.http_request import Request
 from davidkhala.utils.typed import IDDict
 
-from davidkhala.llm.model.chat import ChatAware, Prompt
+from davidkhala.llm.model.chat import ChatAware, Prompt, ChoicesAware
 from davidkhala.llm.model.embed import EmbeddingAware
 from davidkhala.llm.model.garden import GardenAlike
 
@@ -30,18 +29,12 @@ class ChatAPI(API, ChatAware):
 
         data = []
         file_annotations = []
-        for _ in response['choices']:
-            data.append(_['message']['content'])
-            _a = _["message"].get('annotations')
-            if _a: file_annotations.append(_a)
+        for _ in ChoicesAware.model_validate(response).choices:
+            data.append(_.message.content)
+            if _.message.annotations: file_annotations.append(_.message.annotations)
 
         return {
             "data": data,
-            "meta": {
-                "usage": response['usage'],
-                "created": datetime.datetime.fromtimestamp(response['created']),
-            },
-            'model': response['model'],
             'annotations': file_annotations,
         }
 

@@ -13,11 +13,11 @@ class NativeClient(Client):
             base_url=base_url
         ))
 
-    def chat(self, user_prompt, *, web_search: Literal["low", "medium", "high"] = None):
+    def chat(self, *user_prompt, web_search: Literal["low", "medium", "high"] = None):
         tools: list[ToolParam] = []
         if web_search:
             tools.append(WebSearchToolParam(
                 type="web_search",
                 search_context_size=web_search,
             ))
-        return super().chat(user_prompt, tools=tools)
+        return super().chat(*user_prompt, tools=tools)
