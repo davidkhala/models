@@ -1,20 +1,20 @@
-import base64
 import json
 from pathlib import Path
 
+from davidkhala.utils.syntax.format import mime_of, data_url_of
 from openai import OpenAI
 from openai.lib.azure import AzureOpenAI
 from openai.types.responses import ResponseTextConfigParam, ResponseFormatTextJSONSchemaConfigParam, \
-    EasyInputMessageParam, ResponseInputTextParam, ResponseInputFileParam
+    EasyInputMessageParam, ResponseInputTextParam, ResponseInputFileParam, ResponseInputImageParam
 
 from davidkhala.llm.openai.current import Client
 
 
 class AzureHosted(Client):
-    def chat(self, user_prompt, **kwargs):
+    def chat(self, *user_prompt, **kwargs):
         if 'web_search' in kwargs:
             raise ValueError('Web search options not supported in any models of Azure AI Foundry')
-        return super().chat(user_prompt, **kwargs)
+        return super().chat(*user_prompt, **kwargs)
 
 
 from davidkhala.ml.ocr.model import FieldProperties
@@ -33,10 +33,20 @@ class ModelDeploymentClient(AzureHosted):
                 *,
                 prompt="Extract the required fields from this file and return the output strictly following the provided JSON schema.",
                 ) -> list[dict]:
-        with open(file, "rb") as f:
-            content = base64.b64encode(f.read()).decode("utf-8")
         required = [k for k, _ in schema.items() if _.required]
         properties = {k: {'type': v.type} for k, v in schema.items()}
+
+        if mime_of(file).startswith('image/'):
+            media_param = ResponseInputImageParam(
+                detail='auto', type='input_image',
+                image_url=data_url_of(file)
+            )
+        else:
+            media_param = ResponseInputFileParam(
+                type="input_file",
+                file_data=data_url_of(file),
+                filename=file.name,
+            )
 
         self.messages.append(EasyInputMessageParam(
             role='user',
@@ -44,11 +54,7 @@ class ModelDeploymentClient(AzureHosted):
                 ResponseInputTextParam(
                     type='input_text',
                     text=prompt),
-                ResponseInputFileParam(
-                    type="input_file",
-                    file_data=content,
-                    filename=file.name,
-                )
+                media_param
             ]
         ))
         json_schema = ResponseFormatTextJSONSchemaConfigParam(
@@ -57,11 +63,12 @@ class ModelDeploymentClient(AzureHosted):
                     "properties": properties,
                     "required": required,
                     },
+            strict=False
         )
         response = self.chat(
             text=ResponseTextConfigParam(format=json_schema)
         )
-        return json.loads(response)
+        return json.loads(response.output_text)
 
 
 class OpenAIClient(AzureHosted):

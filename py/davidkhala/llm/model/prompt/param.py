@@ -1,17 +1,8 @@
 from pathlib import Path
 from typing import Literal
 
-from davidkhala.utils.syntax.format import Base64, mime_of
+from davidkhala.utils.syntax.format import data_url_of
 from pydantic import BaseModel
-
-
-def data_url_of(path: Path):
-    """
-    :return: base64 encoded file in a data URL.
-    TODO: import from davidkhala.utils.syntax later
-    """
-    return f"data:{mime_of(path)};base64,{Base64.encode_file(path)}"
-
 
 class Image(BaseModel):
     url: str | None = None

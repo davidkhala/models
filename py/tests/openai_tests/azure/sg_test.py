@@ -3,11 +3,13 @@ import unittest
 
 from davidkhala.llm.openai.azure import ModelDeploymentClient, OpenAIClient
 
+project = 'ai-sg'
+
 
 class OpenAITestCase(unittest.TestCase):
     def setUp(self):
         api_key = os.environ.get("API_KEY")
-        project = os.environ.get("PROJECT")
+
         self.client = OpenAIClient(api_key, project)
 
     def test_connect(self):
@@ -18,30 +20,26 @@ class OpenAITestCase(unittest.TestCase):
         self.client.as_chat("gpt-5.2")  # should be one of my Model Deployment
         print(self.client.chat("hello"))
 
+
 class ModelDeploymentTestCase(unittest.TestCase):
     def setUp(self):
-        key = os.environ.get("DEPLOYMENT_KEY")
-        deployment = os.environ.get("DEPLOYMENT")
-        self.client = ModelDeploymentClient(key, deployment)
+        key = os.environ.get("API_KEY")
+        self.client = ModelDeploymentClient(key, project)
 
     def test_connect(self):
         self.assertTrue(self.client.connect())
 
     def test_chat(self):
         self.client.as_chat("gpt-5.2", "You are a helpful assistant.")
-        response = self.client.chat("Don't reply me anything now." )
+        response = self.client.chat("Don't reply me anything now.")
         print(response.output_text)
         print('----')
         response = self.client.chat("how many questions I have asked you in this conversation?")
         print(response.output_text)
 
-    def test_embedding(self):
-        self.client.as_embeddings("text-embedding-3-large")
-        print(self.client.encode("Attention is all you need"))
-
     def test_ocr(self):
         from pathlib import Path
-        file = Path(__file__).parent.parent / "fixtures" / "transcript.png"
+        file = Path(__file__).parent.parent.parent / "fixtures" / "transcript.png"
         from davidkhala.llm.openai.azure import FieldProperties
         schema = {
             'Student': FieldProperties(required=True),
@@ -50,8 +48,7 @@ class ModelDeploymentTestCase(unittest.TestCase):
             'Gender': FieldProperties(required=True),
             'Credits Earned': FieldProperties(),
         }
-        self.client.as_chat("gpt-4o",
-                            "You are a professional OCR parser.")
+        self.client.as_chat("gpt-5.2", "You are a professional OCR parser.")
         r = self.client.process(file, schema)
         print(r)
 

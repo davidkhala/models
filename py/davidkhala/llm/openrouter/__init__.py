@@ -1,16 +1,14 @@
-from openrouter import OpenRouter, OptionalNullable
-from openrouter.components import Model, ChatResponse, ChatMessageContentItem
+from openrouter import OpenRouter
+from openrouter.components import Model, ChatResult, ChatAssistantMessageContent
 from openrouter.errors import UnauthorizedResponseError
 from openrouter.operations import ListData, CreateEmbeddingsResponseBody
-from typing_extensions import Literal, TypeAlias
+from typing_extensions import Literal
 
 from davidkhala.llm.model import Connectable
 from davidkhala.llm.model.chat import Prompt, DeterministicChat
 from davidkhala.llm.model.embed import EmbeddingAware
 from davidkhala.llm.model.garden import TrialAvailable, GardenAlike
 from davidkhala.llm.model.openrouter import OpenRouterModel
-
-AssistantMessageContent: TypeAlias = str | list[ChatMessageContentItem]
 
 
 class Client(OpenRouterModel, GardenAlike, DeterministicChat, EmbeddingAware, Connectable, TrialAvailable):
@@ -22,13 +20,13 @@ class Client(OpenRouterModel, GardenAlike, DeterministicChat, EmbeddingAware, Co
         super().__init__()
         self.client: OpenRouter = OpenRouter(api_key)
 
-    def chat(self, *user_prompt: Prompt) -> OptionalNullable[AssistantMessageContent]:
+    def chat(self, *user_prompt: Prompt) -> ChatAssistantMessageContent:
         """
         python SDK Do not support FilePrompt yet
         """
         plugins = []
 
-        r: ChatResponse = self.client.chat.send(
+        r: ChatResult = self.client.chat.send(
             model=self.model,
             models=self._models,
             messages=self.messages_from(*user_prompt),

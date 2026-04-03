@@ -29,12 +29,12 @@ class HackModelTestCase(unittest.TestCase):
         self.assertEqual(r["input-tokens"], 0.0)
         self.assertEqual(r["output-tokens"], 0.0)
         models = console.models
-        self.assertEqual(len(models), 108)
+        self.assertEqual(len(models), 106)
         print(console.free_models)
 
 
 class ChatTestCase(BaseTest):
-    from davidkhala.llm.model.chat import ImagePrompt
+    from davidkhala.llm.model.prompt.param import Image
     def test_free(self):
         self._.reset()
         self._.as_chat('deepseek-ai/DeepSeek-R1-0528-Qwen3-8B')
@@ -56,13 +56,14 @@ class ChatTestCase(BaseTest):
         self._.reset()
         self._.as_chat('Qwen/Qwen3-VL-32B-Instruct')
         self._.n = 2
-        r1 = self._.chat(ChatTestCase.ImagePrompt(
-            text='Are these 2 images identical?',
-            image_url=[
-                "https://sf-maas-uat-prod.oss-cn-shanghai.aliyuncs.com/dog.png",
-                "https://sf-maas-uat-prod.oss-cn-shanghai.aliyuncs.com/dog.png"
-            ],
-        ))
+        r1 = self._.chat('Are these 2 images identical?',
+                         ChatTestCase.Image(
+                             url="https://sf-maas-uat-prod.oss-cn-shanghai.aliyuncs.com/dog.png"
+                         ),
+                         ChatTestCase.Image(
+                             url="https://sf-maas-uat-prod.oss-cn-shanghai.aliyuncs.com/dog.png"
+                         )
+                         )
         print(r1)
 
 

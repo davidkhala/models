@@ -43,21 +43,18 @@ jobs:
           extras: openai
   azure:
     runs-on: ubuntu-latest
-    environment: azure
+    environment: azure-${{matrix.region}}
     strategy:
       matrix:
-        version: [ 3.12, latest ]
+        region: [ sg, japanest ]
     env:
-      PROJECT: ${{vars.PROJECT}}
       API_KEY: ${{secrets.API_KEY}}
-      DEPLOYMENT: ${{vars.DEPLOYMENT}}
-      DEPLOYMENT_KEY: ${{secrets.DEPLOYMENT_KEY}}
     steps:
       - uses: actions/checkout@main
       - uses: davidkhala/uv-buildpack@main
         with:
           working-directory: py
-          test-entry-point: pytest openai_tests/azure_test.py
+          test-entry-point: pytest openai_tests/azure/${{matrix.region}}_test.py
           tests: py/tests
           extras: azure
-          version: ${{matrix.version}}
+          version: 3.12

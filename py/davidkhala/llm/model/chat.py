@@ -23,7 +23,7 @@ class Message(BaseModel):
     """
 
     def as_dict(self) -> MessageDict:
-        return self.model_dump()
+        return self.model_dump(exclude_none=True)
 
     @staticmethod
     def from_dict(data: MessageDict):
