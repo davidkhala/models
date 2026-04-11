@@ -1,6 +1,7 @@
 # qwen
-[web chat](https://chat.qwen.ai/)
+[Qwen Studio](https://chat.qwen.ai/)
 - 无独立api-key，开发者将跳转到阿里云百炼
+- > Qwen Chat is now officially renamed to Qwen Studio (April 2026)
 
 # Qwen VL
 图生文
