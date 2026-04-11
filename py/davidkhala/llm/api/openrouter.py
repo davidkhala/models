@@ -46,7 +46,7 @@ class OpenRouter(OpenRouterModel, ChatAPI, EmbeddingAPI, GardenAPI, Deterministi
             else:
                 raise
 
-    def chat(self, *user_prompt: Prompt, pdf_engine: Plugins.PDF_ENGINE = 'pdf-text'):
+    def chat(self, *user_prompt: Prompt, pdf_engine: Plugins.PDF_ENGINE = 'cloudflare-ai'):
         options: dict = {
             'plugins': [
                 Plugins.pdf(pdf_engine)

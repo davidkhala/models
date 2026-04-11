@@ -22,6 +22,7 @@ class ChatTestCase(BaseTestCase):
 
     def test_url_pdf(self):
         self.openrouter.as_chat('openrouter/free')
+        self.openrouter.seed = None
         r = self.openrouter.chat('Summerize this pdf', ChatTestCase.FilePrompt(
             url='https://bitcoin.org/bitcoin.pdf'
         ))
@@ -91,11 +92,10 @@ class RegionLimitTestCase(BaseTestCase):
             self.openrouter.as_chat(model)
             r = self.openrouter.chat('return True')
             print(model, r)
-
+    @skipIf(os.environ.get('CI'), "openai is available in GitHub runner region")
     def test_openai_limit(self):
-        if os.environ.get('CI'):
-            self.skipTest("openai is available in GitHub runner region")
         self.openrouter.as_chat('openai/gpt-4.1-nano')
+        self.openrouter.seed = None
         with self.assertRaises(HTTPError) as e:
             self.openrouter.chat('-')
         self.assertEqual(e.exception.response.status_code, 403)

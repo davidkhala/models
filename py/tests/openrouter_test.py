@@ -32,11 +32,15 @@ class InfoTestCase(AppTestCase):
             print(m.id)
 
 
+from davidkhala.llm.model.prompt.param import File as FilePrompt
+
+
 class ChatTestCase(AppTestCase):
     def test_free(self):
         self.openrouter.as_chat('openrouter/free', sys_prompt='You are a shiny girl today')
         r = self.openrouter.chat('Hello!')
         print(r)
+
     def test_seed(self):
         self.openrouter.as_chat("ibm-granite/granite-4.0-h-micro")
         r = self.openrouter.chat('Hello!')
@@ -47,6 +51,15 @@ class ChatTestCase(AppTestCase):
     def test_ibm(self):
         self.openrouter.as_chat("ibm-granite/granite-4.0-h-micro")
         r = self.openrouter.chat("What is the meaning of life?")
+        print(r)
+
+    def test_url_pdf(self):
+        self.openrouter.as_chat('openrouter/free')
+        self.openrouter.seed = None
+        r = self.openrouter.chat('Summerize this pdf', FilePrompt(
+            url='https://bitcoin.org/bitcoin.pdf'
+        )
+                                 )
         print(r)
 
 

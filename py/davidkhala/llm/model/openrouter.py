@@ -47,14 +47,16 @@ class OpenRouterModel(ChatAware):
 
 
 class Plugins:
-    PDF_ENGINE = Literal['pdf-text', 'mistral-ocr', 'native'] | None
+    PDF_ENGINE = Literal['cloudflare-ai', 'mistral-ocr', 'native'] | Literal['pdf-text'] | None
 
     @staticmethod
-    def pdf(engine: PDF_ENGINE = 'pdf-text'):
+    def pdf(engine: PDF_ENGINE):
         """
         PDF parsing will still work even if the plugin is not explicitly set
         :param engine:
             'pdf-text': free. Best for well-structured PDFs with clear text content
+                @deprecated: The "pdf-text" engine is deprecated and automatically redirected to "cloudflare-ai". Existing requests using "pdf-text" will continue to work.
+            'cloudflare-ai': free. Converts PDFs to Markdown using Cloudflare Workers AI
             'native': Only available for models that support file input natively. Token cost
             'mistral-ocr': default. Best quality. $2 per 1,000 pages
         """

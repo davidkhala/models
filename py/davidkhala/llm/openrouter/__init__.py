@@ -8,7 +8,7 @@ from davidkhala.llm.model import Connectable
 from davidkhala.llm.model.chat import Prompt, DeterministicChat
 from davidkhala.llm.model.embed import EmbeddingAware
 from davidkhala.llm.model.garden import TrialAvailable, GardenAlike
-from davidkhala.llm.model.openrouter import OpenRouterModel
+from davidkhala.llm.model.openrouter import OpenRouterModel, Plugins
 
 
 class Client(OpenRouterModel, GardenAlike, DeterministicChat, EmbeddingAware, Connectable, TrialAvailable):
@@ -20,11 +20,13 @@ class Client(OpenRouterModel, GardenAlike, DeterministicChat, EmbeddingAware, Co
         super().__init__()
         self.client: OpenRouter = OpenRouter(api_key)
 
-    def chat(self, *user_prompt: Prompt) -> ChatAssistantMessageContent:
+    def chat(self, *user_prompt: Prompt, pdf_engine: Plugins.PDF_ENGINE = 'cloudflare-ai') -> ChatAssistantMessageContent:
         """
-        python SDK Do not support FilePrompt yet
+
         """
-        plugins = []
+        plugins = [
+            Plugins.pdf(pdf_engine)
+        ]
 
         r: ChatResult = self.client.chat.send(
             model=self.model,
