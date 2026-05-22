@@ -1,6 +1,10 @@
 # Z.ai
 [chat](https://chat.z.ai/)
+- Supported types: PDF, DOCX, DOC, XLS, XLSX, PPT, PPTX, PNG, JPG, JPEG, CSV, PY, TXT, MD, BMP, GIF, MP4
+
 [API](https://z.ai/model-api)
+
+
 
 ## Troubleshoot
 Q: Why does it still report error "1113 Insufficient Balance" after purchasing the coding package? Why is the account balance still deducted after purchasing the coding package?
