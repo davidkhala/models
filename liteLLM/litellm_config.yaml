@@ -1,0 +1,19 @@
+model_list:
+  - model_name: llama3.2
+    litellm_params:
+      model: ollama/llama3.2
+      api_base: "http://localhost:11434"
+  - model_name: mistral
+    litellm_params:
+      model: ollama/mistral
+      api_base: "http://localhost:11434"
+  - model_name: llava:13b
+    litellm_params:
+      model: ollama/llava:13b
+      api_base: # for routing
+        - url: "http://localhost:11434"
+          weight: 3
+        
+
+general_settings:
+  master_key: "sk-FRIzyOt5ec5TmhAYR20AVRU7veZlsz14_XkBS4l4qVQ"
