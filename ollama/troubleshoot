@@ -1,0 +1,7 @@
+
+# 模型加载
+通过日志判断
+```
+tail -f ~/.ollama/logs/server.log
+```
+
