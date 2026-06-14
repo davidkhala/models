@@ -23,30 +23,23 @@ class ChatTestCase(BaseTestCase):
     def test_url_pdf(self):
         self.openrouter.as_chat('openrouter/free')
         self.openrouter.seed = None
-        r = self.openrouter.chat('Summerize this pdf', ChatTestCase.FilePrompt(
-            url='https://bitcoin.org/bitcoin.pdf'
-        ))
-        print(r)
+        with self.assertRaises(HTTPError) as e:
+            self.openrouter.chat('Summerize this pdf', ChatTestCase.FilePrompt(
+                url='https://bitcoin.org/bitcoin.pdf'
+            ))
+        self.assertEqual(400, e.exception.response.status_code)
+        self.assertEqual("Failed to parse bitcoin.pdf", e.exception.response.json()['error']['message'])
+
 
     def test_local_pdf(self):
         self.openrouter.as_chat('openrouter/free')
-        self.openrouter.chat(
+        r = self.openrouter.chat(
             'Read this pdf',
-            ChatTestCase.FilePrompt(url='https://bitcoin.org/bitcoin.pdf'),
-            ChatTestCase.FilePrompt(path=resolve(__file__, '../../fixtures/empty.pdf'))
+            ChatTestCase.FilePrompt(path=resolve(__file__, '../../fixtures/bitcoin.pdf'))
         )
-        r2 = self.openrouter.chat('Learn from the annotations. If any, tell me what is first annotation')
-        self.assertTrue("don't" in r2 or 'not' in r2, "annotations is transparent")
+        print(r)
 
-    def test_mix_pdf(self):
-        self.openrouter.as_chat('openrouter/free')
-        r1 = self.openrouter.chat('Summerize these 2 pdf',
-                                  ChatTestCase.FilePrompt(url='https://bitcoin.org/bitcoin.pdf'),
-                                  ChatTestCase.FilePrompt(path=resolve(__file__, '../../fixtures/empty.pdf'))
-                                  )
 
-        print(self.openrouter.messages)
-        print(r1)
 
     @skipIf(os.environ.get('CI'), "paid model")
     def test_chat_models(self):

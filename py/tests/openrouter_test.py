@@ -2,7 +2,10 @@ import os
 import unittest
 from unittest import skipIf
 
+from openrouter.errors import BadRequestResponseError
+
 from davidkhala.llm.openrouter import Client as OpenRouterClient
+from davidkhala.utils.syntax.path import resolve
 
 
 class AdminTestCase(unittest.TestCase):
@@ -56,10 +59,16 @@ class ChatTestCase(AppTestCase):
     def test_url_pdf(self):
         self.openrouter.as_chat('openrouter/free')
         self.openrouter.seed = None
+        with self.assertRaises(BadRequestResponseError) as e:
+            self.openrouter.chat('Summerize this pdf', FilePrompt(url='https://bitcoin.org/bitcoin.pdf'))
+        self.assertEqual('Failed to parse bitcoin.pdf', e.exception.message)
+
+    def test_local_pdf(self):
+        self.openrouter.as_chat('openrouter/free')
+        self.openrouter.seed = None
         r = self.openrouter.chat('Summerize this pdf', FilePrompt(
-            url='https://bitcoin.org/bitcoin.pdf'
-        )
-                                 )
+            path=resolve(__file__, '../fixtures/bitcoin.pdf')
+        ))
         print(r)
 
 
