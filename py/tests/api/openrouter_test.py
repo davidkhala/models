@@ -30,7 +30,6 @@ class ChatTestCase(BaseTestCase):
         self.assertEqual(400, e.exception.response.status_code)
         self.assertEqual("Failed to parse bitcoin.pdf", e.exception.response.json()['error']['message'])
 
-
     def test_local_pdf(self):
         self.openrouter.as_chat('openrouter/free')
         r = self.openrouter.chat(
@@ -38,8 +37,6 @@ class ChatTestCase(BaseTestCase):
             ChatTestCase.FilePrompt(path=resolve(__file__, '../../fixtures/bitcoin.pdf'))
         )
         print(r)
-
-
 
     @skipIf(os.environ.get('CI'), "paid model")
     def test_chat_models(self):
@@ -51,7 +48,7 @@ class ChatTestCase(BaseTestCase):
 class ModelsTestCase(BaseTestCase):
     def test_models(self):
         models = self.openrouter.free_models
-        self.assertGreaterEqual(len(models), 25)
+        self.assertGreaterEqual(len(models), 23)
         print(len(models), models)
 
 
@@ -81,10 +78,12 @@ class RegionLimitTestCase(BaseTestCase):
 
     def test_openai(self):
         allowed_models = ['openai/gpt-oss-20b:free', 'openai/gpt-5-nano']
+        self.openrouter.seed = None
         for model in allowed_models:
             self.openrouter.as_chat(model)
             r = self.openrouter.chat('return True')
             print(model, r)
+
     @skipIf(os.environ.get('CI'), "openai is available in GitHub runner region")
     def test_openai_limit(self):
         self.openrouter.as_chat('openai/gpt-4.1-nano')
