@@ -1,11 +1,9 @@
 from pathlib import Path
 
 from davidkhala.llm.model.chat import ChatAware
-from ollama import ChatResponse, Message, Image, Client as RawClient
+from davidkhala.llm.model.embed import EmbeddingAware
+from ollama import ChatResponse, Message, Image, Client as RawClient, EmbedResponse
 from pydantic import BaseModel
-
-
-
 
 class ImagePrompt(BaseModel):
     content: str
@@ -20,7 +18,7 @@ class ImagePrompt(BaseModel):
 Prompt = str | ImagePrompt
 
 
-class Client(ChatAware):
+class Client(ChatAware, EmbeddingAware):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.client = RawClient()
@@ -49,3 +47,9 @@ class Client(ChatAware):
 
             self.messages.append(message)
         return self.messages
+    def encode(self, *_input: str) -> list[list[float]]:
+        r:EmbedResponse = self.client.embed(
+            model=self.model,
+            input = _input,
+        )
+        return r.embeddings

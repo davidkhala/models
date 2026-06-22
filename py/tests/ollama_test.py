@@ -12,7 +12,18 @@ class LocalTest(unittest.TestCase):
         self._.as_chat('mistral')
         r = self._.chat('What is 17 × 23?')
         print(r)
+    def test_embed(self):
 
+        self._.as_embeddings('embeddinggemma')
+        r= self._.encode(
+            'The quick brown fox jumps over the lazy dog.',
+            'The five boxing wizards jump quickly.',
+            'Jackdaws love my big sphinx of quartz.'
+        )
+
+        self.assertIsInstance(r, list)
+        self.assertEqual(3, len(r))
+        self.assertIsInstance(r[0], list)
 
 class CloudTest(unittest.TestCase):
     def setUp(self):

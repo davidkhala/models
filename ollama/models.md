@@ -1,5 +1,7 @@
 
-# gemma
+
+# Chat model
+## gemma
 
 `gemma3`
 
@@ -9,20 +11,25 @@
 
 - one of free models when `ollama launch openclaw`
 
-# qwen
+## qwen
 
 `qwen3.6`
 
 - one of free models when `ollama launch openclaw`
 
-# mistral
+## mistral
 
 `mistral`
 
 - model in LiteLLM initial `litellm_config.yaml`
 
-# llama
+## llama
 
 `llama3.2`
 
 - model in LiteLLM initial `litellm_config.yaml`
+# Embedding model
+[recommended models](https://docs.ollama.com/capabilities/embeddings#recommended-models)
+- `embeddinggemma`
+- `qwen3-embedding`
+- `all-minilm`
