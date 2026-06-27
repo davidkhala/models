@@ -12,15 +12,13 @@ class Client(ChoicesChat, DeterministicChat):
         self.client = APIClient(Credentials(
             url=f"https://{region}.ml.cloud.ibm.com",
             api_key=api_key
-        ))
-        self.project_id = project_id
+        ), project_id)
 
     def as_chat(self, model: str | None, sys_prompt: str = None):
         super().as_chat(model=None, sys_prompt=sys_prompt)
         self.handler = ModelInference(
             model_id=model,
             api_client=self.client,
-            project_id=self.project_id,
         )
 
     def chat(self, *user_prompt: Prompt):
