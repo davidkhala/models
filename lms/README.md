@@ -4,5 +4,6 @@
 ## Install
 Mac / Linux
 - `curl -fsSL https://lmstudio.ai/install.sh | bash`
+
 Windows
 - `irm https://lmstudio.ai/install.ps1 | iex`
