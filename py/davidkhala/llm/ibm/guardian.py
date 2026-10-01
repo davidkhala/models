@@ -9,7 +9,7 @@ class Detectors:
     """
     `GuardianDetectors`:
     - `hap`: Hate, abuse, and profanity (HAP) filter
-    - `pii`: Personal identifiable information (PII) filter
+    - `pii`: Personal identifiable information (PII) filter. It uses a NLP AI model to identify and flag content
     """
     default = GuardianDetectors.get_sample_params()
     strict = {

@@ -38,7 +38,7 @@ class ChatAware(ModelAware, ABC):
     def reset(self):
         self.messages = []
 
-    def as_chat(self, model: str | None, sys_prompt: str = None):
+    def as_chat(self, model: str, sys_prompt: str | None = None):
         self.model = model
         if sys_prompt is not None:
             self.messages = [Message(role='system', content=sys_prompt).as_dict()]

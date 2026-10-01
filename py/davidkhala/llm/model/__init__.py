@@ -1,7 +1,7 @@
 class ModelAware:
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.model: str | None = None
+        self.model: str
 
 
 class Connectable:

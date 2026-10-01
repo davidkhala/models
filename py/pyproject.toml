@@ -18,6 +18,9 @@ azure = ["openai", "davidkhala-ml-ocr"]
 zai = ["zai-sdk"]
 ibm = ["ibm-watsonx-ai"]
 ollama = ["ollama"]
+gemini = [
+    "google-genai",
+]
 [tool.hatch.build.targets.sdist]
 include = ["davidkhala"]
 
