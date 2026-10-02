@@ -6,7 +6,8 @@ from davidkhala.llm.gemini import Client
 
 class ChatTest(unittest.TestCase):
     def setUp(self):
-        api_key = os.environ.get("API_KEY")
+        api_key = os.environ.get("API_KEY") # Selected APIs: Agent Platform API
+
         self.client = Client(api_key, project="gcp-data-davidkhala")
 
     def test_sample(self):
