@@ -9,16 +9,22 @@ class ChoicesAware(BaseModel):
     candidates: list[Candidate]
 
 
+def from_api_key(api_key: str, *, project: str | None = None) -> genai.Client:
+    """
+    :param api_key: API Restrictions: `Agent Platform API`
+    :param project: gcp project ID
+    """
+    return genai.Client(
+        enterprise=True if project else False,
+        api_key=api_key,
+        project=project,
+        location="global"
+    )
 class Client(ChoicesChat):
 
-    def __init__(self, api_key: str, *, project: str | None = None):
+    def __init__(self, client: genai.Client):
         super().__init__()
-        self.client = genai.Client(
-            enterprise=True if project else False,
-            api_key=api_key,
-            project=project,
-            location="global"
-        )
+        self.client = client
 
     def chat(self, *user_prompt, **kwargs):
         r = self.client.models.generate_content(

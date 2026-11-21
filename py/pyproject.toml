@@ -1,6 +1,6 @@
 [project]
 name = "davidkhala.ai.models"
-version = "0.0.4"
+version = "0.0.5"
 description = "GenAI models"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -18,9 +18,14 @@ azure = ["openai", "davidkhala-ml-ocr"]
 zai = ["zai-sdk"]
 ibm = ["ibm-watsonx-ai"]
 ollama = ["ollama"]
-gemini = [
-    "google-genai",
+gemini = ["google-genai"]
+
+[dependency-groups]
+dev = [
+    "pytest"
 ]
+siliconflow = ["beautifulsoup4"]
+
 [tool.hatch.build.targets.sdist]
 include = ["davidkhala"]
 
@@ -31,8 +36,5 @@ include = ["davidkhala"]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[dependency-groups]
-dev = [
-    "pytest"
-]
-siliconflow = ["beautifulsoup4"]
+[tool.pytest.ini_options]
+addopts = "-s -v"
