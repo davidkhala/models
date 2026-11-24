@@ -5,7 +5,8 @@ description = "GenAI models"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "pydantic", "davidkhala-utils"
+    "pydantic",
+    "davidkhala-utils",
 ]
 [project.optional-dependencies]
 api = ["davidkhala.utils[http_request]"]
@@ -19,7 +20,7 @@ zai = ["zai-sdk"]
 ibm = ["ibm-watsonx-ai"]
 ollama = ["ollama"]
 gemini = ["google-genai"]
-
+aws = ["boto3"]
 [dependency-groups]
 dev = [
     "pytest"

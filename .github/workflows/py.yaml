@@ -79,3 +79,16 @@ jobs:
           test-entry-point: pytest ibm_test.py
           tests: py/tests
           extras: ibm
+  aws:
+    runs-on: ubuntu-latest
+    environment: aws
+    env:
+      AWS_BEARER_TOKEN_BEDROCK: ${{secrets.AWS_BEARER_TOKEN_BEDROCK}}
+    steps:
+      - uses: actions/checkout@main
+      - uses: davidkhala/uv-buildpack@main
+        with:
+          working-directory: py
+          test-entry-point: pytest aws_test.py
+          tests: py/tests
+          extras: aws
