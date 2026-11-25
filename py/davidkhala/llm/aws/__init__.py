@@ -75,11 +75,17 @@ class Client(ChatAware):
             aws_access_key_id=access_key_id,
             aws_secret_access_key=secret_access_key,
         )
+        self.system:list
 
-    def as_chat(self, model: str, sys_prompt: str | None = None):
-        self.model = f"global.{model}"
+    def as_chat(self, model: str, sys_prompt: str | None = None,
+                *,
+                geo_scope: Literal["global", "us", "eu", "apac"] = "global"
+                ):
+        self.model = f"{geo_scope}.{model}"
+
         if sys_prompt is not None:
-            self.messages = [Message(role='system', content=sys_prompt).as_dict()]
+            # https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_SystemContentBlock.html
+            self.system = [{'text': sys_prompt}]
 
     def chat(self, *user_prompt):
         """
@@ -106,5 +112,4 @@ class Client(ChatAware):
         return self.messages
 
     def on_response(self, response) -> list:
-        return [choice['text'] for choice in response["output"]["message"]["content"] if "text" in choice ]
-
+        return [choice['text'] for choice in response["output"]["message"]["content"] if "text" in choice]

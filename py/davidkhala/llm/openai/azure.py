@@ -23,6 +23,7 @@ from davidkhala.ml.ocr.model import FieldProperties
 class ModelDeploymentClient(AzureHosted):
 
     def __init__(self, key, deployment):
+        # TODO upgrade to https://ai-sg.services.ai.azure.com/openai/v1
         super().__init__(AzureOpenAI(
             api_version="2025-03-01-preview",  # mandatory
             azure_endpoint=f"https://{deployment}.cognitiveservices.azure.com/",

@@ -26,6 +26,17 @@ class QuickStart(unittest.TestCase):
         self.client.as_chat("moonshotai.kimi-k3.1")
         r = self.client.chat("Write a one-sentence bedtime story about a unicorn.")
         print(r)
+    def test_glm(self):
+        self.client.as_chat("zai.glm-5.3")
+        with self.assertRaisesRegex(
+                ClientError,
+                r"zai.glm-5.3 is not available for this account"
+        ):
+            self.client.chat("Hi")
 
+    def test_nova(self):
+        self.client.as_chat("amazon.nova-2-lite-v1:0")
+        r = self.client.chat("Hi")
+        print(r)
 if __name__ == '__main__':
     unittest.main()
