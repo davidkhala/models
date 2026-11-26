@@ -23,7 +23,7 @@ class QuickStart(unittest.TestCase):
             self.client.chat("Hi")
 
     def test_kimi(self):
-        self.client.as_chat("moonshotai.kimi-k3.1")
+        self.client.as_chat("moonshotai.kimi-k3.1", "You are a helpful assistant.")
         r = self.client.chat("Write a one-sentence bedtime story about a unicorn.")
         print(r)
     def test_glm(self):

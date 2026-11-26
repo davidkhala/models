@@ -1,9 +1,9 @@
 import json
 from pathlib import Path
 
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from davidkhala.utils.syntax.format import mime_of, data_url_of
 from openai import OpenAI
-from openai.lib.azure import AzureOpenAI
 from openai.types.responses import ResponseTextConfigParam, ResponseFormatTextJSONSchemaConfigParam, \
     EasyInputMessageParam, ResponseInputTextParam, ResponseInputFileParam, ResponseInputImageParam
 
@@ -23,10 +23,10 @@ from davidkhala.ml.ocr.model import FieldProperties
 class ModelDeploymentClient(AzureHosted):
 
     def __init__(self, key, deployment):
-        # TODO upgrade to https://ai-sg.services.ai.azure.com/openai/v1
-        super().__init__(AzureOpenAI(
-            api_version="2025-03-01-preview",  # mandatory
-            azure_endpoint=f"https://{deployment}.cognitiveservices.azure.com/",
+        if not key:
+            key = get_bearer_token_provider(DefaultAzureCredential(), "https://ai.azure.com/.default")
+        super().__init__(OpenAI(
+            base_url=f"https://{deployment}.services.ai.azure.com/openai/v1",
             api_key=key,
         ))
 
