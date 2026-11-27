@@ -57,4 +57,16 @@ jobs:
           test-entry-point: pytest openai_tests/azure/${{matrix.region}}_test.py
           tests: py/tests
           extras: azure
-          version: 3.12
+  gemini:
+    runs-on: ubuntu-latest
+    environment: gcp
+    env:
+      API_KEY: ${{secrets.API_KEY}}
+    steps:
+      - uses: actions/checkout@main
+      - uses: davidkhala/uv-buildpack@main
+        with:
+          working-directory: py
+          test-entry-point: pytest gemini_test.py
+          tests: py/tests
+          extras: gemini

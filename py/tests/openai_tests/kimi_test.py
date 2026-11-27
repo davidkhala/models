@@ -2,7 +2,7 @@ import json
 import os
 import unittest
 from pathlib import Path
-from unittest import skipIf, skipUnless
+from unittest import skipIf
 
 from openai import BadRequestError
 
@@ -33,7 +33,7 @@ class KimiTest(GlobalBase):
         with self.assertRaises(BadRequestError) as e:
             self.client.upload(Path(__file__).parent.parent / "fixtures" / "empty.pdf")
         self.assertEqual(e.exception.message,
-                         "Error code: 400 - {'error': {'message': 'text extract error: 没有解析出内容', 'type': 'invalid_request_error'}}")
+                         "Error code: 400 - text extract error: 文件解析失败")
 
     @skipIf(os.environ.get('CI'), "requires API key and file upload")
     def test_files_list(self):
