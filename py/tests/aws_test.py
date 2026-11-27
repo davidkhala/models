@@ -12,10 +12,7 @@ class QuickStart(unittest.TestCase):
 
     def test_region_limit(self):
         self.client.as_chat("anthropic.claude-haiku-4-5-20251001-v1:0")
-        if os.environ.get("CI"):
-            # CI runners are in a supported region, so the call should succeed
-            self.client.chat("Hi")
-            return
+        # Even CI run in a supported region, the call fails
         with self.assertRaisesRegex(
                 ClientError,
                 r"ValidationException.*Converse.*Access to Anthropic models is not allowed from unsupported countries, regions, or territories"

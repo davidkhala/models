@@ -13,6 +13,9 @@ class Watsonx(unittest.TestCase):
 
 
 class AI(Watsonx):
+    def test_list(self):
+        print(self.client.list_models())
+
     def test_chat(self):
         self.client.reset()
         self.client.as_chat('mistralai/mistral-small-3-1-24b-instruct-2503')
@@ -29,6 +32,14 @@ class AI(Watsonx):
         self.assertEqual(len(choices), self.client.n)
         self.assertTrue(
             'The distance between Paris, France, and Bangalore, India, can vary' in choices[0])  # seed check
+
+    def test_encode(self):
+        self.client.as_embeddings('ibm/granite-embedding-278m-multilingual')
+        result = self.client.encode("Youth craves thrills while adulthood cherishes wisdom.",
+                                    "Youth seeks ambition while adulthood finds contentment.",
+                                    "Dreams chased in youth while goals pursued in adulthood."
+                                    )
+        self.assertEqual(768, len(result[0]))
 
 
 class Guardian(Watsonx):
