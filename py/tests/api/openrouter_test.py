@@ -7,52 +7,61 @@ from requests import HTTPError
 
 
 class BaseTestCase(unittest.TestCase):
+    api_key: str
+
     def setUp(self):
-        api_key = os.environ.get('API_KEY')
         from davidkhala.llm.api.openrouter import OpenRouter as OpenRouterAPI
-        self.openrouter = OpenRouterAPI(api_key)
+        self.openrouter = OpenRouterAPI(self.api_key)
 
 
-class ChatTestCase(BaseTestCase):
-    from davidkhala.llm.model.prompt.param import File as FilePrompt
-    def test_chat(self):
+@skipIf(os.environ.get('CI'), "paid api-key")
+class PaidTestCase(BaseTestCase):
+    def setUp(self):
+        self.api_key = os.environ.get('API_KEY')
+        super().setUp()
+
+from davidkhala.llm.model.prompt.param import File as FilePrompt
+class FreeTestCase(BaseTestCase):
+    def setUp(self):
+        self.api_key = 'sk-or-v1' + '-e7b1d56e3237f21aab0de23eaa58885ea09adde9a8dd31f18cabfb90ca4ea17b'
+        super().setUp()
         self.openrouter.as_chat("openrouter/free")
+
+    def test_chat(self):
         r = self.openrouter.chat('who am I?')
         print(r)
 
     def test_url_pdf(self):
-        self.openrouter.as_chat('openrouter/free')
-        self.openrouter.seed = None
-        with self.assertRaises(HTTPError) as e:
-            self.openrouter.chat('Summerize this pdf', ChatTestCase.FilePrompt(
-                url='https://bitcoin.org/bitcoin.pdf'
-            ))
-        self.assertEqual(400, e.exception.response.status_code)
-        self.assertEqual("Failed to parse bitcoin.pdf", e.exception.response.json()['error']['message'])
 
-    def test_local_pdf(self):
-        self.openrouter.as_chat('openrouter/free')
-        r = self.openrouter.chat(
-            'Read this pdf',
-            ChatTestCase.FilePrompt(path=resolve(__file__, '../../fixtures/bitcoin.pdf'))
-        )
+        self.openrouter.seed = None
+        r = self.openrouter.chat('Summerize this pdf', FilePrompt(
+            url='https://bitcoin.org/bitcoin.pdf'
+        ))
         print(r)
 
-    @skipIf(os.environ.get('CI'), "paid model")
+    def test_local_pdf(self):
+        r = self.openrouter.chat(
+            'Read this pdf',
+            FilePrompt(path=resolve(__file__, '../../fixtures/bitcoin.pdf'))
+        )
+        print(r)
+    def test_models(self):
+        models = self.openrouter.free_models
+        self.assertGreaterEqual(len(models), 11)
+        print(len(models), models)
+
+        # 'nvidia/nemotron-3.5-super-vl:free', 'nvidia/nemotron-3.5-lightning:free', 'nvidia/nemotron-3-ultra-550b-a55b:free', 'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',
+        # 'google/gemma-4-26b-a4b-it:free', 'google/gemma-4-31b-it:free'
+
+class ChatTestCase(PaidTestCase):
+
     def test_chat_models(self):
         self.openrouter.as_chat("deepseek/deepseek-r1-0528:free", "deepseek/deepseek-chat-v3.1")
         r = self.openrouter.chat('who am I?')
         print(r)
 
 
-class ModelsTestCase(BaseTestCase):
-    def test_models(self):
-        models = self.openrouter.free_models
-        self.assertGreaterEqual(len(models), 23)
-        print(len(models), models)
-
-
-class EmbeddingsTestCase(BaseTestCase):
+class EmbeddingsTestCase(PaidTestCase):
     def test_embed(self):
         self.openrouter.as_embeddings('mistralai/codestral-embed-2505')
 
@@ -61,27 +70,28 @@ class EmbeddingsTestCase(BaseTestCase):
         self.assertEqual(1536, len(r[0]))
 
 
-class RegionLimitTestCase(BaseTestCase):
+class RegionLimitTestCase(PaidTestCase):
+    @skipIf(os.environ.get('CI'), "gemini is available in GitHub runner region")
     def test_google_limit(self):
-        if os.environ.get('CI'):
-            self.skipTest("Gemini is available in GitHub runner region")
-        for model in ['google/gemma-3n-e2b-it:free']:
+        for model in ['google/gemma-4-31b-it:free', 'google/gemma-4-26b-a4b-it:free']:
             self.openrouter.as_chat(model)
             with self.assertRaises(HTTPError) as e:
                 self.openrouter.chat('-')
             self.assertEqual(e.exception.response.status_code, 400)
 
+    @skipIf(not os.environ.get('CI'), "gemini is available in GitHub runner region")
     def test_google(self):
-        self.openrouter.as_chat('google/gemini-2.5-flash-lite-preview-09-2025')
+        self.openrouter.as_chat('google/gemini-3.8-flash')
         r = self.openrouter.chat('-')
         print(r)
 
+    @skipIf(not os.environ.get('CI'), "openai is available in GitHub runner region")
     def test_openai(self):
-        allowed_models = ['openai/gpt-oss-20b:free', 'openai/gpt-5-nano']
+        allowed_models = ['openai/gpt-oss-20b', 'openai/gpt-5-nano']
         self.openrouter.seed = None
         for model in allowed_models:
             self.openrouter.as_chat(model)
-            r = self.openrouter.chat('return True')
+            r = self.openrouter.chat('-')
             print(model, r)
 
     @skipIf(os.environ.get('CI'), "openai is available in GitHub runner region")

@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
+from typing import Sequence
 
 from davidkhala.utils.protocol import ID
 
 
 class GardenAlike(ABC):
     @abstractmethod
-    def list_models(self) -> list[ID]: ...
+    def list_models(self) -> Sequence[ID]: ...
 
     @property
     def models(self) -> list[str]:

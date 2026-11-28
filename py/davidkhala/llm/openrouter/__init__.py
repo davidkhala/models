@@ -1,70 +1,18 @@
-from openrouter import OpenRouter
-from openrouter.components import Model, ChatResult, ChatAssistantMessageContent
-from openrouter.errors import UnauthorizedResponseError
-from openrouter.operations import ListData, CreateEmbeddingsResponseBody
-from typing_extensions import Literal
-
-from davidkhala.llm.model import Connectable
-from davidkhala.llm.model.chat import Prompt, DeterministicChat
-from davidkhala.llm.model.embed import EmbeddingAware
-from davidkhala.llm.model.garden import TrialAvailable, GardenAlike
-from davidkhala.llm.model.openrouter import OpenRouterModel, Plugins
+from typing import Iterator, Protocol, Callable, List
 
 
-class Client(OpenRouterModel, GardenAlike, DeterministicChat, EmbeddingAware, Connectable, TrialAvailable):
-    @property
-    def free_models(self) -> list[str]:
-        return ['openrouter/free', *(_.id for _ in self.list_models() if _.id.endswith(':free'))]
-
-    def __init__(self, api_key: str):
-        super().__init__()
-        self.client: OpenRouter = OpenRouter(api_key)
-
-    def chat(self, *user_prompt: Prompt, pdf_engine: Plugins.PDF_ENGINE = 'cloudflare-ai') -> ChatAssistantMessageContent:
-        """
-
-        """
-        plugins = [
-            Plugins.pdf(pdf_engine)
-        ]
-
-        r: ChatResult = self.client.chat.send(
-            model=self.model,
-            models=self._models,
-            messages=self.messages_from(*user_prompt),
-            plugins=plugins,
-            seed=self.seed,
-        )
-
-        return r.choices[0].message.content
-
-    def connect(self):
-        try:
-            _ = self.models
-            return True
-        except UnauthorizedResponseError:
-            return False
-
-    def list_models(self, _type: Literal['embeddings'] | None = None) -> list[Model]:
-        match _type:
-            case 'embeddings':
-                return self.client.embeddings.list_models().data
-        return self.client.models.list().data
-
-    def encode(self, *_input: str) -> list[list[float]]:
-        r: CreateEmbeddingsResponseBody = self.client.embeddings.generate(
-            input=_input,
-            model=self.model
-        )
-        return [_.embedding for _ in r.data]
+class Result[ResultType](Protocol):
+    data: List[ResultType]
 
 
-class Admin:
-    def __init__(self, provisioning_key: str):
-        super().__init__()
-        self.provisioning_key = provisioning_key
-        self.client = OpenRouter(provisioning_key)
+class PageResponse[ResultType](Protocol):
+    next: Callable[[], PageResponse | None]
+    result: Result[ResultType]
 
-    @property
-    def keys(self) -> list[ListData]:
-        return self.client.api_keys.list().data
+
+def yield_list[ResultType](_: PageResponse[ResultType] | None) -> Iterator[ResultType]:
+    while _ is not None:
+        for item in _.result.data or []:
+            yield item
+
+        _ = _.next()
